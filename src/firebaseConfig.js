@@ -1,11 +1,9 @@
 // src/firebaseConfig.js
 
-// Import required functions
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth"; // ✅ add this
-import { getAnalytics } from "firebase/analytics";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getFirestore } from "firebase/firestore"; // ✅ Add Firestore
 
-// Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyD8wSL1cr6AC0R2YjIapbJ-5PL5ZMKS7ss",
   authDomain: "apm-jewellery-db.firebaseapp.com",
@@ -16,12 +14,10 @@ const firebaseConfig = {
   measurementId: "G-RWVYL41VGM"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize services
-const auth = getAuth(app); // ✅ add this
-const analytics = getAnalytics(app); // optional
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+const db = getFirestore(app); // ✅ Initialize Firestore with the same app
 
-// Export the services you need
-export { auth }; // ✅ THIS is the fix
+export { auth, googleProvider, db }; // ✅ Export it
