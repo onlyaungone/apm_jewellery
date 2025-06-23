@@ -14,7 +14,7 @@ const Register = () => {
     confirmPassword: "",
     newsletter: false,
   });
-
+//s
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [passwordStrength, setPasswordStrength] = useState("");
