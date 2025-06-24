@@ -198,7 +198,7 @@ const AddAddress = () => {
     </div>
   );
 };
-
+//2
 const Input = ({ label, name, type = "text", ...props }) => (
   <div>
     <label className="block text-sm font-medium mb-1">
