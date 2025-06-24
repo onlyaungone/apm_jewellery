@@ -104,21 +104,17 @@ const Navbar = () => {
 
       {/* Bottom Nav */}
       <ul className="flex flex-wrap gap-5 text-sm text-gray-800 font-medium justify-center">
-        <li><Link to="#">New & featured</Link></li>
-        <li><Link to="#">Shop by</Link></li>
-        <li><Link to="#">Charms</Link></li>
-        <li><Link to="#">Bracelets</Link></li>
-        <li><Link to="#">Rings</Link></li>
-        <li><Link to="#">Necklaces</Link></li>
-        <li><Link to="#">Earrings</Link></li>
-        <li><Link to="#">Engraving</Link></li>
-        <li><Link to="#">Gifts</Link></li>
-        <li><Link to="#">Collections</Link></li>
-        <li>
-          <Link to="#" className="border-b-2 border-black">
-            Lab-grown diamonds
-          </Link>
-        </li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">New & featured</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Shop by</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Charms</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Bracelets</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Rings</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Necklaces</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Earrings</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Engraving</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Gifts</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Collections</Link></li>
+        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Lab-grown diamonds</Link></li>
       </ul>
     </nav>
   );

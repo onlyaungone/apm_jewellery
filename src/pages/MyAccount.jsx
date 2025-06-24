@@ -13,11 +13,9 @@ const MyAccount = () => {
       const user = auth.currentUser;
       if (!user) return navigate("/login");
 
-      // Get user profile
       const userDoc = await getDoc(doc(db, "users", user.uid));
       setUserData(userDoc.data());
 
-      // Get user's address (we assume max 1 for simplicity)
       const addressSnapshot = await getDocs(collection(db, "users", user.uid, "addresses"));
       if (!addressSnapshot.empty) {
         const firstDoc = addressSnapshot.docs[0];
@@ -27,6 +25,13 @@ const MyAccount = () => {
 
     fetchUserAndAddress();
   }, [navigate]);
+
+  const formatGender = (g) => {
+    if (g === "male") return "Male";
+    if (g === "female") return "Female";
+    if (g === "prefer") return "Prefer not to say";
+    return "None";
+  };
 
   if (!userData) return <div className="p-8 text-center">Loading...</div>;
 
@@ -39,28 +44,28 @@ const MyAccount = () => {
         {/* Sizes */}
         <Section title="SIZES" subtitle="Save and share your jewellery sizes here" link="View Sizes" to="/sizes" />
 
-        {/* Address Book - dynamic */}
+        {/* Address Book */}
         {addressData ? (
-        <Section
+          <Section
             title="ADDRESS BOOK"
             subtitle={
-            <>
+              <>
                 <div className="text-xs text-gray-500">{addressData.addressTitle}</div>
                 <div>{addressData.firstName} {addressData.lastName}</div>
                 <div>{addressData.phone}</div>
                 <div>{addressData.address1}, {addressData.suburb}, {addressData.town} {addressData.postalCode}</div>
-            </>
+              </>
             }
-            link="Edit"
-            to={`/edit-address/${addressData.id}`}
-        />
+            link="View"
+            to={`/address-book/`}
+          />
         ) : (
-        <Section
+          <Section
             title="ADDRESS BOOK"
             subtitle="Manage your delivery address"
             link="Add New"
             to="/add-address"
-        />
+          />
         )}
 
         {/* Recent Orders */}
@@ -87,7 +92,7 @@ const MyAccount = () => {
             <div><strong>First Name:</strong> {userData.firstName}</div>
             <div><strong>Last Name:</strong> {userData.lastName}</div>
             <div><strong>Email:</strong> {userData.email}</div>
-            <div><strong>Gender:</strong> {userData.gender || "None"}</div>
+            <div><strong>Gender:</strong> {formatGender(userData.gender)}</div>
             <div><strong>Phone:</strong> {userData.phone || "None"}</div>
             <div><strong>Postal Code:</strong> {userData.postalCode || "None"}</div>
             <div><strong>Birthday:</strong> {userData.birthday || "None"}</div>
