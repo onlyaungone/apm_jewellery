@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../utils/firebaseConfig";
 import { Link } from "react-router-dom";
-import AdminNavbar from "../../../components/AdminNavbar"; // ✅ Import it
+import AdminNavbar from "../../../components/AdminNavbar";
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -22,9 +22,9 @@ const AdminProducts = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <AdminNavbar /> {/* ✅ Use admin navbar here */}
+      <AdminNavbar />
 
-      <div className="p-8">
+      <div className="p-8 max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Manage Products</h1>
           <Link
@@ -51,10 +51,20 @@ const AdminProducts = () => {
                 products.map((product) => (
                   <tr key={product.id} className="border-b hover:bg-gray-50">
                     <td className="px-4 py-2">
-                      <img src={product.image} alt={product.name} className="h-12 w-12 object-cover" />
+                      {product.images && product.images.length > 0 ? (
+                        <img
+                          src={product.images[0]}
+                          alt={product.name}
+                          className="h-12 w-12 rounded object-cover"
+                        />
+                      ) : (
+                        <div className="h-12 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">
+                          No Image
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-2">{product.name}</td>
-                    <td className="px-4 py-2">${product.price}</td>
+                    <td className="px-4 py-2">${Number(product.price).toFixed(2)}</td>
                     <td className="px-4 py-2">{product.category}</td>
                     <td className="px-4 py-2 space-x-2">
                       <button className="text-blue-600 hover:underline">Edit</button>

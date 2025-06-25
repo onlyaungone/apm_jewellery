@@ -1,6 +1,7 @@
 {
   "projects": {
-    "default": "apm-jewellery-db"
+    "default": "apm-jewellery-db",
+    "dev": "apm-jewellery-db"
   },
   "targets": {},
   "etags": {}

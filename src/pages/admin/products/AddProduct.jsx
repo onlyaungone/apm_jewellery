@@ -31,6 +31,8 @@ const AddProduct = () => {
   });
 
   const [mainImages, setMainImages] = useState(Array(6).fill(null));
+  const [mainImagePreviews, setMainImagePreviews] = useState(Array(6).fill(null));
+  const [metalImagePreviews, setMetalImagePreviews] = useState([""]);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -54,7 +56,12 @@ const AddProduct = () => {
   const handleMetalImageChange = (index, file) => {
     const updatedMetals = [...form.metals];
     updatedMetals[index].image = file;
+
+    const updatedPreviews = [...metalImagePreviews];
+    updatedPreviews[index] = file ? URL.createObjectURL(file) : null;
+
     setForm((prev) => ({ ...prev, metals: updatedMetals }));
+    setMetalImagePreviews(updatedPreviews);
   };
 
   const handleAddMetal = () => {
@@ -62,12 +69,16 @@ const AddProduct = () => {
       ...prev,
       metals: [...prev.metals, { type: "", feature: "", image: null }],
     }));
+    setMetalImagePreviews((prev) => [...prev, null]);
   };
 
   const handleMainImageChange = (index, file) => {
     const updatedImages = [...mainImages];
+    const updatedPreviews = [...mainImagePreviews];
     updatedImages[index] = file;
+    updatedPreviews[index] = file ? URL.createObjectURL(file) : null;
     setMainImages(updatedImages);
+    setMainImagePreviews(updatedPreviews);
   };
 
   const handleAddSize = () => {
@@ -83,44 +94,49 @@ const AddProduct = () => {
     setForm((prev) => ({ ...prev, sizes: updatedSizes }));
   };
 
+  const uploadFile = async (path, file) => {
+    const fileRef = ref(storage, path);
+    const metadata = { contentType: file.type };
+    await uploadBytes(fileRef, file, metadata);
+    return await getDownloadURL(fileRef);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const selectedMainImages = mainImages.filter((img) => img);
-    if (selectedMainImages.length === 0) {
-      alert("Please upload at least one main image.");
-      return;
-    }
-
-    if (!form.metals[0].type || !form.metals[0].image) {
-      alert("At least one metal type with image is required.");
-      return;
-    }
-
     try {
+      const selectedMainImages = mainImages.filter((img) => img);
+      if (selectedMainImages.length === 0) {
+        alert("Please upload at least one main image.");
+        return;
+      }
+
+      if (!form.metals[0].type || !form.metals[0].image) {
+        alert("At least one metal type with image is required.");
+        return;
+      }
+
       const mainImageUrls = await Promise.all(
         selectedMainImages.map(async (image) => {
-          const imageRef = ref(storage, `products/main/${uuidv4()}-${image.name}`);
-          await uploadBytes(imageRef, image);
-          return await getDownloadURL(imageRef);
+          const path = `products/main/${uuidv4()}-${image.name}`;
+          return await uploadFile(path, image);
         })
       );
 
       const metalData = await Promise.all(
         form.metals.map(async (metal) => {
-          const imageRef = ref(storage, `products/metals/${uuidv4()}-${metal.image.name}`);
-          await uploadBytes(imageRef, metal.image);
-          const url = await getDownloadURL(imageRef);
+          const path = `products/metals/${uuidv4()}-${metal.image.name}`;
+          const url = await uploadFile(path, metal.image);
           return { type: metal.type, feature: metal.feature, imageUrl: url };
         })
       );
 
       await addDoc(collection(db, "products"), {
         ...form,
-        metals: metalData,
         productId: generateProductId(),
         price: parseFloat(form.price),
         images: mainImageUrls,
+        metals: metalData,
         sizes: form.sizes.map((s) => ({ ...s, price: parseFloat(s.price) })),
         createdAt: serverTimestamp(),
       });
@@ -128,6 +144,7 @@ const AddProduct = () => {
       alert("Product added successfully!");
       navigate("/admin/products");
     } catch (error) {
+      console.error("Upload Error:", error);
       alert("Error adding product: " + error.message);
     }
   };
@@ -144,8 +161,19 @@ const AddProduct = () => {
 
           <p className="text-sm text-gray-600">Upload 1 to 6 main images</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {mainImages.map((img, i) => (
-              <input key={i} type="file" accept="image/*" required={i === 0} onChange={(e) => handleMainImageChange(i, e.target.files[0])} className="border px-4 py-2 rounded" />
+            {mainImages.map((_, i) => (
+              <div key={i} className="space-y-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  required={i === 0}
+                  onChange={(e) => handleMainImageChange(i, e.target.files[0])}
+                  className="border px-4 py-2 rounded"
+                />
+                {mainImagePreviews[i] && (
+                  <img src={mainImagePreviews[i]} alt={`Main Preview ${i}`} className="h-24 rounded object-cover" />
+                )}
+              </div>
             ))}
           </div>
 
@@ -156,6 +184,9 @@ const AddProduct = () => {
                 <input placeholder="Metal Type" value={metal.type} onChange={(e) => handleMetalChange(index, "type", e.target.value)} className="w-full border px-4 py-2 rounded" required={index === 0} />
                 <input placeholder="Special Feature" value={metal.feature} onChange={(e) => handleMetalChange(index, "feature", e.target.value)} className="w-full border px-4 py-2 rounded" />
                 <input type="file" accept="image/*" onChange={(e) => handleMetalImageChange(index, e.target.files[0])} className="w-full border px-4 py-2 rounded" required={index === 0} />
+                {metalImagePreviews[index] && (
+                  <img src={metalImagePreviews[index]} alt={`Metal Preview ${index}`} className="h-20 rounded object-cover" />
+                )}
               </div>
             ))}
             <button type="button" onClick={handleAddMetal} className="text-blue-600 text-sm">+ Add Metal</button>
