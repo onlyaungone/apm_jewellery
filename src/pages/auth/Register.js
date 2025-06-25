@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { createUserWithEmailAndPassword, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider, db } from "../../utils/firebaseConfig";
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -10,6 +10,7 @@ const Register = () => {
     firstName: "",
     lastName: "",
     email: "",
+    role: "user",
     password: "",
     confirmPassword: "",
     newsletter: false,
@@ -64,7 +65,9 @@ const Register = () => {
         firstName: formData.firstName,
         lastName: formData.lastName,
         email: formData.email,
+        role: formData.role,
         newsletter: formData.newsletter,
+        createdAt: serverTimestamp(),
       });
 
       // Safely show alert and then navigate

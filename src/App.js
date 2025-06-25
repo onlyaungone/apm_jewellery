@@ -1,5 +1,14 @@
-import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import React, { useEffect } from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+  useLocation,
+  useNavigate,
+} from "react-router-dom";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
 import Navbar from "./components/Navbar";
@@ -15,9 +24,39 @@ import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
 
 function App() {
-  const { currentUser } = useAuth();
+  const { currentUser, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const isAdminRoute = location.pathname.startsWith("/admin");
+
+  // ✅ Log Firebase Auth state (email + UID)
+  useEffect(() => {
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("✅ Logged in user email:", user.email);
+        console.log("✅ Logged in user UID:", user.uid);
+      } else {
+        console.log("❌ No user is logged in");
+      }
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // ⛳ Redirect admin to /admin if at root
+  useEffect(() => {
+    if (!loading && currentUser?.role === "admin" && location.pathname === "/") {
+      navigate("/admin");
+    }
+  }, [loading, currentUser, location.pathname, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl font-semibold">Loading user info...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -41,7 +80,7 @@ function App() {
         <Route path="/add-address" element={<AddAddress />} />
         <Route path="/edit-address/:id" element={<EditAddress />} />
 
-        {/* Protected Admin Routes */}
+        {/* 🔐 Admin Protected Routes */}
         <Route
           path="/admin"
           element={currentUser?.role === "admin" ? <AdminDashboard /> : <Navigate to="/" />}

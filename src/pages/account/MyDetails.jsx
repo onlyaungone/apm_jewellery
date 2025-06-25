@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../../utils/firebaseConfig";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 
 const MyDetails = () => {
@@ -73,6 +73,7 @@ const MyDetails = () => {
       weddingDay: formData.weddingDay,
       anniversary: formData.anniversary,
       newsletter: formData.newsletter,
+      updatedAt: serverTimestamp(),
     };
 
     try {

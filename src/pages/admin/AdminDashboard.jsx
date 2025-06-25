@@ -1,9 +1,55 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router-dom";
 import AdminNavbar from "../../components/AdminNavbar";
-
+import { useAuth } from "../../context/AuthContext";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "../../utils/firebaseConfig";
 
 const AdminDashboard = () => {
+  const { currentUser } = useAuth();
+
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    pendingOrders: 0,
+    users: 0,
+    admins: 0,
+    monthlyRevenue: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+        const productsSnap = await getDocs(collection(db, "products"));
+
+        const usersQuery = query(collection(db, "users"), where("role", "==", "user"));
+        const usersSnap = await getDocs(usersQuery);
+
+        const adminsQuery = query(collection(db, "users"), where("role", "==", "admin"));
+        const adminsSnap = await getDocs(adminsQuery);
+
+        const pendingOrdersSnap = await getDocs(
+        query(collection(db, "orders"), where("status", "==", "pending"))
+        );
+
+        let totalRevenue = 0;
+        const allOrdersSnap = await getDocs(collection(db, "orders"));
+        allOrdersSnap.forEach((doc) => {
+        totalRevenue += doc.data()?.total || 0;
+        });
+
+        setStats({
+        totalProducts: productsSnap.size,
+        pendingOrders: pendingOrdersSnap.size,
+        users: usersSnap.size,
+        admins: adminsSnap.size,
+        monthlyRevenue: totalRevenue,
+        });
+    };
+
+    fetchStats();
+  }, []);
+
+  if (currentUser?.role !== "admin") return <Navigate to="/" />;
+
   return (
     <>
       <AdminNavbar />
@@ -25,10 +71,11 @@ const AdminDashboard = () => {
           <p className="text-gray-700 mb-4">Use the sidebar to manage your store.</p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard label="Total Products" value="134" />
-            <StatCard label="Pending Orders" value="27" />
-            <StatCard label="Users" value="382" />
-            <StatCard label="Monthly Revenue" value="$12,450" />
+            <StatCard label="Total Products" value={stats.totalProducts} />
+            <StatCard label="Pending Orders" value={stats.pendingOrders} />
+            <StatCard label="Users" value={stats.users} />
+            <StatCard label="Admins" value={stats.admins} />
+            <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />
           </div>
         </main>
       </div>

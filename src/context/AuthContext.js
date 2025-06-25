@@ -5,26 +5,37 @@ import { auth, db } from "../utils/firebaseConfig";
 
 const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
+export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        const snap = await getDoc(doc(db, "users", user.uid));
-        const role = snap.data()?.role || "user";
-        setCurrentUser({ ...user, role });
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists()) {
+            setCurrentUser({ uid: user.uid, email: user.email, ...userDoc.data() }); // role included
+          } else {
+            setCurrentUser({ uid: user.uid, email: user.email }); // fallback
+          }
+        } catch (err) {
+          console.error("Error loading user role:", err);
+        }
       } else {
         setCurrentUser(null);
       }
+      setLoading(false);
     });
+
+    return () => unsubscribe();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ currentUser }}>
+    <AuthContext.Provider value={{ currentUser, loading }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
 export const useAuth = () => useContext(AuthContext);

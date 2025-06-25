@@ -1,12 +1,12 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, GoogleAuthProvider } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
-
+import { getStorage } from "firebase/storage";
 const firebaseConfig = {
   apiKey: "AIzaSyD8wSL1cr6AC0R2YjIapbJ-5PL5ZMKS7ss",
   authDomain: "apm-jewellery-db.firebaseapp.com",
   projectId: "apm-jewellery-db",
-  storageBucket: "apm-jewellery-db.firebasestorage.app",
+  storageBucket: "apm-jewellery-db.appspot.com",
   messagingSenderId: "362911525390",
   appId: "1:362911525390:web:59d792b7445733cb97aa5f",
   measurementId: "G-RWVYL41VGM"
@@ -17,5 +17,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { auth, googleProvider, db };
+export { auth, googleProvider, db, storage };
