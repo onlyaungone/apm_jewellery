@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../firebaseConfig";
+import { auth, db } from "../../../utils/firebaseConfig";
 import { collection, getDocs, doc, deleteDoc } from "firebase/firestore";
 
 const AddressBook = () => {

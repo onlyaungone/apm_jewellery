@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { loadGoogleMapsScript } from "../utils/loadGoogleMaps";
-import { collection, addDoc } from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { getAuth } from "firebase/auth";
+import { useNavigate, useParams } from "react-router-dom";
+import { loadGoogleMapsScript } from "../../../utils/loadGoogleMaps";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db, auth } from "../../../utils/firebaseConfig";
 
-const AddAddress = () => {
+const EditAddress = () => {
+  const { id } = useParams(); // address document ID
   const navigate = useNavigate();
   const [predictions, setPredictions] = useState([]);
   const autocompleteService = useRef(null);
@@ -26,6 +26,21 @@ const AddAddress = () => {
   });
 
   useEffect(() => {
+    const init = async () => {
+      const user = auth.currentUser;
+      if (!user) return navigate("/login");
+
+      const docRef = doc(db, "users", user.uid, "addresses", id);
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        setFormData(docSnap.data());
+      } else {
+        alert("Address not found.");
+        navigate("/address-book");
+      }
+    };
+
+    init();
     loadGoogleMapsScript();
 
     const interval = setInterval(() => {
@@ -36,7 +51,7 @@ const AddAddress = () => {
         clearInterval(interval);
       }
     }, 500);
-  }, []);
+  }, [id, navigate]);
 
   const handleAddressChange = (e) => {
     const value = e.target.value;
@@ -56,28 +71,27 @@ const AddAddress = () => {
     if (!placesService.current || !placeId) return;
 
     placesService.current.getDetails({ placeId }, (place, status) => {
-        if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place) return;
+      if (status !== window.google.maps.places.PlacesServiceStatus.OK || !place) return;
 
-        const getComponent = (type) => {
+      const getComponent = (type) => {
         const comp = place.address_components.find((c) => c.types.includes(type));
         return comp ? comp.long_name : "";
-        };
+      };
 
-        const streetNumber = getComponent("street_number");
-        const route = getComponent("route");
+      const streetNumber = getComponent("street_number");
+      const route = getComponent("route");
 
-        setFormData((prev) => ({
+      setFormData((prev) => ({
         ...prev,
         address1: `${streetNumber} ${route}`.trim(),
         suburb: getComponent("sublocality") || getComponent("locality"),
         town: getComponent("administrative_area_level_1"),
         postalCode: getComponent("postal_code"),
-        }));
+      }));
     });
 
     setPredictions([]);
-    };
-
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,29 +99,24 @@ const AddAddress = () => {
   };
 
   const handleSubmit = async (e) => {
-  e.preventDefault();
-  const auth = getAuth();
-  const user = auth.currentUser;
+    e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
 
-  if (!user) {
-    alert("You must be logged in to save an address.");
-    return;
-  }
-
-  try {
-    const addressRef = collection(db, "users", user.uid, "addresses");
-    await addDoc(addressRef, formData);
-    alert("Address saved!");
-    navigate("/account");
-  } catch (error) {
-    console.error("Error saving address: ", error);
-    alert("Failed to save address.");
-  }
-};
+    try {
+      const addressRef = doc(db, "users", user.uid, "addresses", id);
+      await updateDoc(addressRef, formData);
+      alert("Address updated!");
+      navigate("/address-book");
+    } catch (error) {
+      console.error("Error updating address:", error);
+      alert("Failed to update address.");
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6 md:p-12">
-      <h1 className="text-4xl font-bold mb-6">ADD NEW ADDRESS</h1>
+      <h1 className="text-4xl font-bold mb-6">EDIT ADDRESS</h1>
       <form onSubmit={handleSubmit} className="space-y-6">
         <Input label="Address Title" name="addressTitle" value={formData.addressTitle} onChange={handleChange} required />
         <Input label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} required />
@@ -198,6 +207,7 @@ const AddAddress = () => {
     </div>
   );
 };
+
 const Input = ({ label, name, type = "text", ...props }) => (
   <div>
     <label className="block text-sm font-medium mb-1">
@@ -212,4 +222,4 @@ const Input = ({ label, name, type = "text", ...props }) => (
   </div>
 );
 
-export default AddAddress;
+export default EditAddress;

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { auth, googleProvider } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, googleProvider, db } from "../../utils/firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
@@ -11,9 +12,27 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      alert("Login successful!");
-      navigate("/");
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Get user's role from Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        const role = userData.role;
+
+        alert("Login successful!");
+
+        if (role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      } else {
+        alert("User data not found in Firestore.");
+      }
     } catch (err) {
       alert(err.message);
     }
@@ -23,8 +42,22 @@ const Login = () => {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
-      console.log("Google user signed in:", user);
-      navigate("/");
+
+      // Fetch role from Firestore
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const role = userSnap.data().role;
+
+        if (role === "admin") {
+          navigate("/admin");
+        } else {
+          navigate("/");
+        }
+      } else {
+        alert("User data not found.");
+      }
     } catch (error) {
       console.error("Google sign-in error:", error.message);
     }

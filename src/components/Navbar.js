@@ -13,8 +13,9 @@ import {
   FaHistory,
   FaInfoCircle,
 } from "react-icons/fa";
-import { auth } from "../firebaseConfig";
+import { auth } from "../utils/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import logo from "../assets/web_logo.png";
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
@@ -37,8 +38,8 @@ const Navbar = () => {
       {/* Top Row */}
       <div className="flex justify-between items-center">
         {/* Logo */}
-        <Link to="/" className="text-2xl font-semibold tracking-wide">
-          APM
+        <Link to="/" className="flex items-center">
+          <img src={logo} alt="APM Logo" className="h-20 w-auto" />
         </Link>
 
         {/* Search */}

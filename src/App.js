@@ -1,19 +1,28 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import Register from "./pages/auth/Register";
+import Login from "./pages/auth/Login";
 import Navbar from "./components/Navbar";
-import MyAccount from "./pages/MyAccount";
-import MyDetails from "./pages/MyDetails";
-import ChangePassword from "./pages/ChangePassword";
-import AddressBook from "./pages/AddressBook";
-import AddAddress from "./pages/AddAddress";
-import EditAddress from "./pages/EditAddress";
+import MyAccount from "./pages/account/MyAccount";
+import MyDetails from "./pages/account/MyDetails";
+import ChangePassword from "./pages/account/ChangePassword";
+import AddressBook from "./pages/account/address/AddressBook";
+import AddAddress from "./pages/account/address/AddAddress";
+import EditAddress from "./pages/account/address/EditAddress";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import { useAuth } from "./context/AuthContext";
+import AdminProducts from "./pages/admin/products/AdminProducts";
+import AddProduct from "./pages/admin/products/AddProduct";
 
 function App() {
+  const { currentUser } = useAuth();
+  const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
+
   return (
-    <Router>
-      <Navbar />
+    <>
+      {!isAdminRoute && <Navbar />}
+
       <Routes>
         <Route
           path="/"
@@ -31,9 +40,29 @@ function App() {
         <Route path="/address-book" element={<AddressBook />} />
         <Route path="/add-address" element={<AddAddress />} />
         <Route path="/edit-address/:id" element={<EditAddress />} />
+
+        {/* Protected Admin Routes */}
+        <Route
+          path="/admin"
+          element={currentUser?.role === "admin" ? <AdminDashboard /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/admin/products"
+          element={currentUser?.role === "admin" ? <AdminProducts /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/admin/products/add"
+          element={currentUser?.role === "admin" ? <AddProduct /> : <Navigate to="/" />}
+        />
       </Routes>
-    </Router>
+    </>
   );
 }
 
-export default App;
+export default function AppWithRouter() {
+  return (
+    <Router>
+      <App />
+    </Router>
+  );
+}

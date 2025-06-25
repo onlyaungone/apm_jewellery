@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth } from "../../utils/firebaseConfig";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const ChangePassword = () => {

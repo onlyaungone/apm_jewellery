@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaUser, FaSignOutAlt, FaLock, FaMapMarkerAlt, FaCreditCard, FaRuler, FaHistory, FaInfoCircle } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth } from "../utils/firebaseConfig";
 
 const UserMenu = () => {
   const [isOpen, setIsOpen] = useState(false);
