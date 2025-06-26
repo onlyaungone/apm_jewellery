@@ -16,10 +16,14 @@ import {
 import { auth } from "../utils/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import logo from "../assets/web_logo.png";
+import { useCart } from "../context/CartContext";
+
 
 const Navbar = () => {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const { cartItems } = useCart();
+  const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -94,19 +98,24 @@ const Navbar = () => {
           )}
 
           {/* Cart */}
-          <div className="relative group flex flex-col items-center">
+          <Link to="/cart" className="relative group flex flex-col items-center">
             <FaShoppingBag className="cursor-pointer" />
+            {cartCount > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs px-2 rounded-full">
+                {cartCount}
+              </span>
+            )}
             <span className="absolute top-8 scale-0 group-hover:scale-100 transition bg-black text-white text-xs px-2 py-1 rounded whitespace-nowrap z-10">
               Cart Items
             </span>
-          </div>
+          </Link>
         </div>
       </div>
 
       {/* Bottom Nav */}
       <ul className="flex flex-wrap gap-5 text-sm text-gray-800 font-medium justify-center">
         <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">New & featured</Link></li>
-        <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Shop by</Link></li>
+        <li><Link to="/shop" className="hover:text-black hover:border-b-2 border-black transition">Shop by</Link></li>
         <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Charms</Link></li>
         <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Bracelets</Link></li>
         <li><Link to="#" className="hover:text-black hover:border-b-2 border-black transition">Rings</Link></li>

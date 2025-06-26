@@ -35,12 +35,22 @@ const AdminProducts = () => {
   };
 
   const sortedProducts = [...products].sort((a, b) => {
-    const fieldA = a[sortField]?.toString().toLowerCase() || "";
-    const fieldB = b[sortField]?.toString().toLowerCase() || "";
-    return sortOrder === "asc"
-      ? fieldA.localeCompare(fieldB)
-      : fieldB.localeCompare(fieldA);
-  });
+  const valA = a[sortField];
+  const valB = b[sortField];
+
+  if (sortField === "createdAt") {
+    const dateA = valA?.toDate?.() || new Date(0);
+    const dateB = valB?.toDate?.() || new Date(0);
+    return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
+  }
+
+  const fieldA = valA?.toString().toLowerCase() || "";
+  const fieldB = valB?.toString().toLowerCase() || "";
+  return sortOrder === "asc"
+    ? fieldA.localeCompare(fieldB)
+    : fieldB.localeCompare(fieldA);
+});
+
 
   const filteredProducts = sortedProducts.filter((product) => {
     const search = searchTerm.toLowerCase();
@@ -137,7 +147,7 @@ const AdminProducts = () => {
                     }
                   />
                 </th>
-                {["productId", "name", "price", "category"].map((field) => (
+                {["productId", "name", "price", "category", "createdAt"].map((field) => (
                   <th
                     key={field}
                     onClick={() => handleSort(field)}
@@ -168,6 +178,9 @@ const AdminProducts = () => {
                     <td className="px-4 py-2">{product.name}</td>
                     <td className="px-4 py-2">${Number(product.price).toFixed(2)}</td>
                     <td className="px-4 py-2">{product.category}</td>
+                    <td className="px-4 py-2 text-sm text-gray-500">
+                      {product.createdAt?.toDate?.().toLocaleString() || "N/A"}
+                    </td>
                     <td className="px-4 py-2">
                       {product.images && product.images.length > 0 ? (
                         <img
@@ -181,6 +194,7 @@ const AdminProducts = () => {
                         </div>
                       )}
                     </td>
+                    
                     <td className="px-4 py-2 space-x-2">
                       <Link
                         to={`/admin/products/edit/${product.id}`}

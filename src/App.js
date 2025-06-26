@@ -25,6 +25,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
+import HomePage from "./pages/HomePage";
+import Shop from "./pages/shop/Shop";
+import ProductDetail from "./pages/shop/ProductDetail";
+import CartPage from "./pages/shop/CartPage";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -39,6 +43,7 @@ function App() {
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
+        console.log("Current user:", user);
         console.log("✅ Logged in user email:", user.email);
         console.log("✅ Logged in user UID:", user.uid);
       } else {
@@ -70,14 +75,13 @@ function App() {
 
       <Routes>
         {/* Public */}
-        <Route
-          path="/"
-          element={
-            <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
-              <h2 className="text-white text-4xl font-bold">Welcome to APM Jewellery 💎</h2>
-            </div>
-          }
-        />
+        <Route path="/" element={<HomePage />} />
+        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/cart" element={<CartPage />} />
+        
+        {/* Protected Routes */}
+        <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
 
@@ -89,7 +93,7 @@ function App() {
         <Route path="/add-address" element={<AddAddress />} />
         <Route path="/edit-address/:id" element={<EditAddress />} />
 
-        {/* 🔐 Admin Protected Routes */}
+        {/* Admin Protected Routes */}
         <Route
           path="/admin"
           element={currentUser?.role === "admin" ? <AdminDashboard /> : <Navigate to="/" />}
