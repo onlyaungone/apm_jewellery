@@ -5,6 +5,45 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { useNavigate } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 
+const CATEGORY_MAP = {
+  Charms: [
+    "Clip charms", "Dangle charms", "Engravable charms", "Spacer charms",
+    "Safety chains", "Letter charms", "Birthstone Charms", "Symbols"
+  ],
+  Bracelets: [
+    "Charm bracelets", "Bangles", "Chain bracelets", "Leather bracelets",
+    "Adjustable bracelets", "Lab-grown diamond bracelets",
+    "Tennis bracelets", "Pearl bracelets"
+  ],
+  Rings: [
+    "Promise Rings", "Stacking Rings", "Statement Rings",
+    "Lab-grown Diamond Rings", "Pearl Rings"
+  ],
+  Necklaces: [
+    "Pendant Necklaces", "Chain Necklaces", "Lab-grown Diamond Necklaces",
+    "Pendants", "Pearl Necklaces"
+  ],
+  Earrings: [
+    "Hoop Earrings", "Stud Earrings", "Drop Earrings",
+    "Lab-grown Diamond Earrings", "Pearl Earrings"
+  ]
+};
+
+const SYMBOL_TYPES = [
+  "Family & friends",
+  "Travel & hobbies",
+  "Occasions & celebrations",
+  "Love",
+  "Animals & pets",
+  "Nature & celestial"
+];
+
+const SIZE_OPTIONS = [
+  "One Size", "48", "50", "52", "54", "56", "58", "60",
+  "16 CM", "17 CM", "18 CM", "19 CM", "20 CM", "21 CM", "23 CM",
+  "45 CM", "60 CM", "75 CM"
+];
+
 const generateProductId = () => {
   const digits = Math.floor(100000 + Math.random() * 900000).toString();
   const letters = Array.from({ length: 3 }, () =>
@@ -18,50 +57,68 @@ const AddProduct = () => {
     name: "",
     price: "",
     category: "",
+    subCategory: "",
+    symbolType: "",
     description: "",
+    engravable: "No",
+    isLabGrown: false,
+    caratWeight: "",
     metals: [{ type: "", feature: "", image: null }],
     highlights: {
       love: "",
       handFinished: "",
       keepPerfect: "",
       workWith: "",
-      dimensions: "",
+      dimensions: ""
     },
-    sizes: [],
+    sizes: []
   });
 
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [subcategories, setSubcategories] = useState([]);
   const [mainImages, setMainImages] = useState(Array(6).fill(null));
   const [mainImagePreviews, setMainImagePreviews] = useState(Array(6).fill(null));
   const [metalImagePreviews, setMetalImagePreviews] = useState([""]);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
+    const val = type === "checkbox" ? checked : value;
     if (name in form.highlights) {
       setForm((prev) => ({
         ...prev,
-        highlights: { ...prev.highlights, [name]: value },
+        highlights: { ...prev.highlights, [name]: val },
       }));
     } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
+      setForm((prev) => ({ ...prev, [name]: val }));
     }
   };
 
+  const handleCategoryChange = (e) => {
+    const category = e.target.value;
+    setSubcategories(CATEGORY_MAP[category] || []);
+    setForm((prev) => ({ ...prev, category, subCategory: "", symbolType: "" }));
+    setSelectedCategory(category);
+  };
+
+  const handleSubCategoryChange = (e) => {
+  const subCategory = e.target.value;
+  setForm((prev) => ({ ...prev, subCategory }));
+};
+
   const handleMetalChange = (index, field, value) => {
-    const updatedMetals = [...form.metals];
-    updatedMetals[index][field] = value;
-    setForm((prev) => ({ ...prev, metals: updatedMetals }));
+    const updated = [...form.metals];
+    updated[index][field] = value;
+    setForm((prev) => ({ ...prev, metals: updated }));
   };
 
   const handleMetalImageChange = (index, file) => {
-    const updatedMetals = [...form.metals];
-    updatedMetals[index].image = file;
-
-    const updatedPreviews = [...metalImagePreviews];
-    updatedPreviews[index] = file ? URL.createObjectURL(file) : null;
-
-    setForm((prev) => ({ ...prev, metals: updatedMetals }));
-    setMetalImagePreviews(updatedPreviews);
+    const updated = [...form.metals];
+    updated[index].image = file;
+    const previews = [...metalImagePreviews];
+    previews[index] = file ? URL.createObjectURL(file) : null;
+    setForm((prev) => ({ ...prev, metals: updated }));
+    setMetalImagePreviews(previews);
   };
 
   const handleAddMetal = () => {
@@ -73,25 +130,25 @@ const AddProduct = () => {
   };
 
   const handleMainImageChange = (index, file) => {
-    const updatedImages = [...mainImages];
-    const updatedPreviews = [...mainImagePreviews];
-    updatedImages[index] = file;
-    updatedPreviews[index] = file ? URL.createObjectURL(file) : null;
-    setMainImages(updatedImages);
-    setMainImagePreviews(updatedPreviews);
+    const updated = [...mainImages];
+    const previews = [...mainImagePreviews];
+    updated[index] = file;
+    previews[index] = file ? URL.createObjectURL(file) : null;
+    setMainImages(updated);
+    setMainImagePreviews(previews);
   };
 
   const handleAddSize = () => {
     setForm((prev) => ({
       ...prev,
-      sizes: [...prev.sizes, { size: "", price: "" }],
+      sizes: [...prev.sizes, { size: "", price: "", quantity: "" }],
     }));
   };
 
   const handleSizeChange = (index, field, value) => {
-    const updatedSizes = [...form.sizes];
-    updatedSizes[index][field] = value;
-    setForm((prev) => ({ ...prev, sizes: updatedSizes }));
+    const updated = [...form.sizes];
+    updated[index][field] = value;
+    setForm((prev) => ({ ...prev, sizes: updated }));
   };
 
   const uploadFile = async (path, file) => {
@@ -105,21 +162,13 @@ const AddProduct = () => {
     e.preventDefault();
 
     try {
-      const selectedMainImages = mainImages.filter((img) => img);
-      if (selectedMainImages.length === 0) {
-        alert("Please upload at least one main image.");
-        return;
-      }
-
-      if (!form.metals[0].type || !form.metals[0].image) {
-        alert("At least one metal type with image is required.");
-        return;
-      }
+      if (!mainImages[0]) return alert("Upload at least one image");
+      if (!form.metals[0].type || !form.metals[0].image) return alert("At least one metal type with image is required");
 
       const mainImageUrls = await Promise.all(
-        selectedMainImages.map(async (image) => {
+        mainImages.filter(Boolean).map((image) => {
           const path = `products/main/${uuidv4()}-${image.name}`;
-          return await uploadFile(path, image);
+          return uploadFile(path, image);
         })
       );
 
@@ -135,9 +184,14 @@ const AddProduct = () => {
         ...form,
         productId: generateProductId(),
         price: parseFloat(form.price),
-        images: mainImageUrls,
+        caratWeight: form.isLabGrown ? form.caratWeight : "",
         metals: metalData,
-        sizes: form.sizes.map((s) => ({ ...s, price: parseFloat(s.price) })),
+        images: mainImageUrls,
+        sizes: form.sizes.map((s) => ({
+          ...s,
+          price: parseFloat(s.price),
+          quantity: parseInt(s.quantity, 10)
+        })),
         createdAt: serverTimestamp(),
       });
 
@@ -155,9 +209,62 @@ const AddProduct = () => {
         <h2 className="text-2xl font-semibold mb-6">Add New Product</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input name="name" placeholder="Product Name" required onChange={handleChange} className="w-full border px-4 py-2 rounded" />
-          <input name="price" type="number" placeholder="Base Price" required onChange={handleChange} className="w-full border px-4 py-2 rounded" />
-          <input name="category" placeholder="Category" required onChange={handleChange} className="w-full border px-4 py-2 rounded" />
+          <input
+            name="price"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="Base Price"
+            required
+            onChange={handleChange}
+            className="w-full border px-4 py-2 rounded"
+          />
+
+          <select value={form.category} onChange={handleCategoryChange} required className="w-full border px-4 py-2 rounded">
+            <option value="">Select Category</option>
+            {Object.keys(CATEGORY_MAP).map((cat) => (
+              <option key={cat} value={cat}>{cat}</option>
+            ))}
+          </select>
+
+          <select value={form.subCategory} onChange={handleSubCategoryChange} required disabled={!selectedCategory} className="w-full border px-4 py-2 rounded">
+            <option value="">Select Subcategory</option>
+            {subcategories.map((sub) => (
+              <option key={sub} value={sub}>{sub}</option>
+            ))}
+          </select>
+
+          {/* Symbol Type Dropdown */}
+          {form.category === "Charms" && form.subCategory === "Symbols" && (
+            <select name="symbolType" value={form.symbolType} onChange={handleChange} required className="w-full border px-4 py-2 rounded">
+              <option value="">Select Symbol Type</option>
+              {SYMBOL_TYPES.map((type) => (
+                <option key={type} value={type}>{type}</option>
+              ))}
+            </select>
+          )}
+
           <textarea name="description" placeholder="Product Description" required onChange={handleChange} className="w-full border px-4 py-2 rounded" />
+
+          <select name="engravable" value={form.engravable} onChange={handleChange} className="w-full border px-4 py-2 rounded">
+            <option value="No">Engravable: No</option>
+            <option value="Yes">Engravable: Yes</option>
+          </select>
+
+          <div className="flex items-center gap-2">
+            <input type="checkbox" name="isLabGrown" checked={form.isLabGrown} onChange={handleChange} />
+            <label>Includes Lab-Grown Diamond</label>
+          </div>
+
+          {form.isLabGrown && (
+            <input
+              name="caratWeight"
+              placeholder="Carat Weight (e.g., 0.25 carat)"
+              value={form.caratWeight}
+              onChange={handleChange}
+              className="w-full border px-4 py-2 rounded"
+            />
+          )}
 
           <p className="text-sm text-gray-600">Upload 1 to 6 main images</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -182,7 +289,15 @@ const AddProduct = () => {
             {form.metals.map((metal, index) => (
               <div key={index} className="space-y-2 mb-4">
                 <input placeholder="Metal Type" value={metal.type} onChange={(e) => handleMetalChange(index, "type", e.target.value)} className="w-full border px-4 py-2 rounded" required={index === 0} />
-                <input placeholder="Special Feature" value={metal.feature} onChange={(e) => handleMetalChange(index, "feature", e.target.value)} className="w-full border px-4 py-2 rounded" />
+                
+                <textarea
+                  placeholder="Special Feature"
+                  value={metal.feature}
+                  onChange={(e) => handleMetalChange(index, "feature", e.target.value)}
+                  className="w-full border px-4 py-2 rounded"
+                />
+
+                
                 <input type="file" accept="image/*" onChange={(e) => handleMetalImageChange(index, e.target.files[0])} className="w-full border px-4 py-2 rounded" required={index === 0} />
                 {metalImagePreviews[index] && (
                   <img src={metalImagePreviews[index]} alt={`Metal Preview ${index}`} className="h-20 rounded object-cover" />
@@ -201,9 +316,35 @@ const AddProduct = () => {
           <div className="mt-4">
             <p className="text-sm font-semibold">Sizes (Optional)</p>
             {form.sizes.map((size, index) => (
-              <div key={index} className="flex gap-2 mb-2">
-                <input placeholder="Size" value={size.size} onChange={(e) => handleSizeChange(index, "size", e.target.value)} className="border px-2 py-1 rounded w-1/2" />
-                <input type="number" placeholder="Price" value={size.price} onChange={(e) => handleSizeChange(index, "price", e.target.value)} className="border px-2 py-1 rounded w-1/2" />
+              <div key={index} className="grid grid-cols-3 gap-2 mb-2">
+                <select
+                  value={size.size}
+                  onChange={(e) => handleSizeChange(index, "size", e.target.value)}
+                  className="border px-2 py-1 rounded"
+                >
+                  <option value="">Select Size</option>
+                  {SIZE_OPTIONS.map((opt) => (
+                    <option key={opt} value={opt}>{opt}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  placeholder="Price"
+                  value={size.price}
+                  onChange={(e) => handleSizeChange(index, "price", e.target.value)}
+                  className="border px-2 py-1 rounded"
+                />
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Quantity"
+                  value={size.quantity}
+                  onChange={(e) => handleSizeChange(index, "quantity", e.target.value)}
+                  className="border px-2 py-1 rounded"
+                />
               </div>
             ))}
             <button type="button" onClick={handleAddSize} className="text-blue-600 text-sm">+ Add Size</button>
