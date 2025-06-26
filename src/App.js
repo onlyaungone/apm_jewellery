@@ -29,6 +29,7 @@ import HomePage from "./pages/HomePage";
 import Shop from "./pages/shop/Shop";
 import ProductDetail from "./pages/shop/ProductDetail";
 import CartPage from "./pages/shop/CartPage";
+import CheckoutPage from "./pages/shop/CheckoutPage";
 
 import { useAuth } from "./context/AuthContext";
 
@@ -79,6 +80,7 @@ function App() {
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/checkout" element={<CheckoutPage />} />
         
         {/* Protected Routes */}
         <Route path="/product/:id" element={<ProductDetail />} />

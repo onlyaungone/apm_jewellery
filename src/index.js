@@ -6,14 +6,21 @@ import reportWebVitals from './reportWebVitals';
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe('pk_test_your_key_here');
+
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <CartProvider> {/* Wrap App with CartProvider */}
-        <App />
-      </CartProvider>
-    </AuthProvider>
+    <Elements stripe={stripePromise}>
+      <AuthProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AuthProvider>
+    </Elements>
   </React.StrictMode>
 );
 
