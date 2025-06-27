@@ -86,6 +86,12 @@ const ConfirmedOrders = () => {
       .reduce((sum, item) => sum + item.total, 0)
       .toFixed(2);
 
+    const totalOriginal = resolvedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalPaid = resolvedItems.reduce((sum, item) => sum + item.total, 0);
+    const totalSaved = (totalOriginal - totalPaid).toFixed(2);
+
+    input.querySelector(".order-saved").innerText = totalSaved;
+
     const itemsContainer = input.querySelector(".order-items");
     itemsContainer.innerHTML = "";
     resolvedItems.forEach((item) => {
@@ -93,7 +99,14 @@ const ConfirmedOrders = () => {
       row.innerHTML = `
         <td class="border px-4 py-2">${item.name}</td>
         <td class="border px-4 py-2">${item.quantity}</td>
-        <td class="border px-4 py-2">$${item.discountedPrice.toFixed(2)}</td>
+        <td class="border px-4 py-2">
+          ${item.discount > 0
+            ? `<div>
+                <span class="mr-1">$${item.price.toFixed(2)}</span>
+              </div>`
+            : `$${item.price.toFixed(2)}`}
+        </td>
+        <td class="border px-4 py-2 text-center">${item.discount ? `${item.discount}%` : "0%"}</td>
         <td class="border px-4 py-2">$${item.total.toFixed(2)}</td>
       `;
       itemsContainer.appendChild(row);
@@ -176,6 +189,7 @@ const ConfirmedOrders = () => {
                                 <th className="border px-4 py-2">Product</th>
                                 <th className="border px-4 py-2">Qty</th>
                                 <th className="border px-4 py-2">Price</th>
+                                <th className="border px-4 py-2">Discount</th>
                                 <th className="border px-4 py-2">Total</th>
                               </tr>
                             </thead>
@@ -183,9 +197,11 @@ const ConfirmedOrders = () => {
                           </table>
 
                           <div className="text-right text-lg">
+                            <p className="text-sm text-green-600">
+                              <strong>You Saved:</strong> $<span className="order-saved"></span>
+                            </p>
                             <p>
-                              <strong>Total Paid:</strong> $
-                              <span className="order-total"></span>
+                              <strong>Total Paid:</strong> $<span className="order-total"></span>
                             </p>
                           </div>
 
