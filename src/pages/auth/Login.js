@@ -15,17 +15,19 @@ const Login = () => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      // Get user's role from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
 
       if (userSnap.exists()) {
         const userData = userSnap.data();
-        const role = userData.role;
+
+        if (userData.isBlocked) {
+          alert("Your account has been blocked. Please contact support.");
+          return;
+        }
 
         alert("Login successful!");
-
-        if (role === "admin") {
+        if (userData.role === "admin") {
           navigate("/admin");
         } else {
           navigate("/");
@@ -43,14 +45,18 @@ const Login = () => {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Fetch role from Firestore
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
 
       if (userSnap.exists()) {
-        const role = userSnap.data().role;
+        const userData = userSnap.data();
 
-        if (role === "admin") {
+        if (userData.isBlocked) {
+          alert("Your account has been blocked. Please contact support.");
+          return;
+        }
+
+        if (userData.role === "admin") {
           navigate("/admin");
         } else {
           navigate("/");

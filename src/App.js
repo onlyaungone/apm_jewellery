@@ -28,6 +28,8 @@ import EditAddress from "./pages/account/address/EditAddress";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManageUsers from "./pages/admin/ManageUsers";
+// Admin Products
 import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
@@ -138,6 +140,11 @@ function App() {
           path="/admin/orders/declined"
           element={currentUser?.role === "admin" ? <DeclinedOrders /> : <Navigate to="/" />}
         />
+        <Route
+          path="/admin/users"
+          element={currentUser?.role === "admin" ? <ManageUsers /> : <Navigate to="/" />}
+        />
+
       </Routes>
     </>
   );
