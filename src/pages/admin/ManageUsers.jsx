@@ -1,11 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { collection, getDocs, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+} from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
 import AdminNavbar from "../../components/AdminNavbar";
 import { toast } from "react-hot-toast";
 
 const ManageUsers = () => {
   const [users, setUsers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchUsers = async () => {
     try {
@@ -42,6 +51,17 @@ const ManageUsers = () => {
     }
   };
 
+  const filteredUsers = users.filter((user) => {
+    const query = searchQuery.toLowerCase();
+    const fullName = `${user.firstName || ""} ${user.lastName || ""}`.toLowerCase();
+    return (
+      user.id.toLowerCase().includes(query) ||
+      user.firstName?.toLowerCase().includes(query) ||
+      fullName.includes(query) ||
+      user.email?.toLowerCase().includes(query)
+    );
+  });
+
   useEffect(() => {
     fetchUsers();
   }, []);
@@ -51,6 +71,15 @@ const ManageUsers = () => {
       <AdminNavbar />
       <div className="p-6">
         <h2 className="text-2xl font-bold mb-4">Manage Users</h2>
+
+        <input
+          type="text"
+          placeholder="Search by ID, name, or email..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="mb-4 px-4 py-2 border rounded w-full max-w-md"
+        />
+
         <div className="overflow-x-auto">
           <table className="min-w-full border bg-white shadow">
             <thead className="bg-gray-100">
@@ -63,17 +92,21 @@ const ManageUsers = () => {
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {filteredUsers.map((user) => (
                 <tr key={user.id} className={user.isBlocked ? "bg-red-100" : ""}>
                   <td className="py-2 px-4 border">{user.id}</td>
-                  <td className="py-2 px-4 border">{user.firstName} {user.lastName}</td>
+                  <td className="py-2 px-4 border">
+                    {user.firstName} {user.lastName}
+                  </td>
                   <td className="py-2 px-4 border">{user.email}</td>
                   <td className="py-2 px-4 border font-semibold">
                     {user.isBlocked ? "Blocked" : "Active"}
                   </td>
                   <td className="py-2 px-4 border space-x-2">
                     <button
-                      className={`px-3 py-1 rounded text-white ${user.isBlocked ? "bg-green-500" : "bg-yellow-500"}`}
+                      className={`px-3 py-1 rounded text-white ${
+                        user.isBlocked ? "bg-green-500" : "bg-yellow-500"
+                      }`}
                       onClick={() => toggleBlockStatus(user.id, user.isBlocked)}
                     >
                       {user.isBlocked ? "Unblock" : "Block"}
@@ -87,7 +120,7 @@ const ManageUsers = () => {
                   </td>
                 </tr>
               ))}
-              {users.length === 0 && (
+              {filteredUsers.length === 0 && (
                 <tr>
                   <td colSpan="5" className="text-center py-4 text-gray-500">
                     No users found.
