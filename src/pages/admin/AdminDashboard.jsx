@@ -11,10 +11,11 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalProducts: 0,
     pendingOrders: 0,
+    confirmedOrders: 0,
+    declinedOrders: 0,
     users: 0,
     admins: 0,
     monthlyRevenue: 0,
-    pendingOrdersList: [],
   });
 
   useEffect(() => {
@@ -31,10 +32,13 @@ const AdminDashboard = () => {
         query(collection(db, "orders"), where("status", "==", "Processing"))
       );
 
-      const pendingList = pendingOrdersSnap.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const confirmedOrdersSnap = await getDocs(
+        query(collection(db, "orders"), where("status", "==", "Completed"))
+      );
+
+      const declinedOrdersSnap = await getDocs(
+        query(collection(db, "orders"), where("status", "==", "Cancelled"))
+      );
 
       let totalRevenue = 0;
       const allOrdersSnap = await getDocs(collection(db, "orders"));
@@ -45,10 +49,11 @@ const AdminDashboard = () => {
       setStats({
         totalProducts: productsSnap.size,
         pendingOrders: pendingOrdersSnap.size,
+        confirmedOrders: confirmedOrdersSnap.size,
+        declinedOrders: declinedOrdersSnap.size,
         users: usersSnap.size,
         admins: adminsSnap.size,
         monthlyRevenue: totalRevenue,
-        pendingOrdersList: pendingList,
       });
     };
 
@@ -67,6 +72,8 @@ const AdminDashboard = () => {
           <nav className="space-y-4 text-gray-700">
             <Link to="/admin/products" className="block hover:text-black">📦 Manage Products</Link>
             <Link to="/admin/orders" className="block hover:text-black">🧾 Manage Orders</Link>
+            <Link to="/admin/orders/confirmed" className="block hover:text-black">✅ Confirmed Orders</Link>
+            <Link to="/admin/orders/declined" className="block hover:text-black">❌ Declined Orders</Link>
             <Link to="/admin/users" className="block hover:text-black">👥 Manage Users</Link>
             <Link to="#" className="block hover:text-black">📊 View Reports</Link>
           </nav>
@@ -79,7 +86,9 @@ const AdminDashboard = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <StatCard label="Total Products" value={stats.totalProducts} />
-            <StatCard label="Pending Orders" value={stats.pendingOrders} />
+            <StatCard label="Processing Orders" value={stats.pendingOrders} />
+            <StatCard label="Confirmed Orders" value={stats.confirmedOrders} />
+            <StatCard label="Declined Orders" value={stats.declinedOrders} />
             <StatCard label="Users" value={stats.users} />
             <StatCard label="Admins" value={stats.admins} />
             <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />

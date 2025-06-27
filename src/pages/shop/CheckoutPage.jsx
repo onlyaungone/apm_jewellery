@@ -128,11 +128,20 @@ const CheckoutPage = () => {
         userId: currentUser.uid,
         email: currentUser?.email || "",
         address,
-        items: cartItems,
+        items: cartItems.map((item) => ({
+          productId: item.productId,
+          productName: item.productName,
+          size: item.size,
+          price: item.price,
+          discount: item.discount,
+          quantity: item.quantity,
+          image: item.image || null,
+        })),
         total: parseFloat(calculateTotal()),
         status: "Processing",
         createdAt: serverTimestamp(),
       };
+
       // 1. Save to global /orders
       await addDoc(collection(db, "orders"), orderData);
 

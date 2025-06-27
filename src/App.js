@@ -10,10 +10,15 @@ import {
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { Toaster } from "react-hot-toast";
 
+// Auth
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
-import Navbar from "./components/Navbar";
 
+// Shared
+import Navbar from "./components/Navbar";
+import { useAuth } from "./context/AuthContext";
+
+// Customer Account
 import MyAccount from "./pages/account/MyAccount";
 import MyDetails from "./pages/account/MyDetails";
 import ChangePassword from "./pages/account/ChangePassword";
@@ -21,19 +26,22 @@ import AddressBook from "./pages/account/address/AddressBook";
 import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
 
+// Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
 import ManageOrders from "./pages/admin/orders/ManageOrders";
+import ViewOrderDetails from "./pages/admin/orders/ViewOrderDetails";
+import ConfirmedOrders from "./pages/admin/orders/ConfirmedOrders";
+import DeclinedOrders from "./pages/admin/orders/DeclinedOrders";
 
+// Shop
 import HomePage from "./pages/HomePage";
 import Shop from "./pages/shop/Shop";
 import ProductDetail from "./pages/shop/ProductDetail";
 import CartPage from "./pages/shop/CartPage";
 import CheckoutPage from "./pages/shop/CheckoutPage";
-
-import { useAuth } from "./context/AuthContext";
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -41,22 +49,20 @@ function App() {
   const navigate = useNavigate();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  // Firebase Auth logging
+  // Firebase auth listener
   useEffect(() => {
-  const auth = getAuth();
-  const unsubscribe = onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("Current user:", user);
-      console.log("✅ Logged in user email:", user.email);
-      console.log("✅ Logged in user UID:", user.uid);
-    } else {
-      console.log("❌ No user is logged in");
-    }
-  });
-  return () => unsubscribe();
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("✅ Logged in user:", user.email);
+      } else {
+        console.log("❌ No user logged in");
+      }
+    });
+    return () => unsubscribe();
   }, []);
 
-  // ⛳ Admin auto-redirect from "/" to "/admin"
+  // Admin auto-redirect from root
   useEffect(() => {
     if (!loading && currentUser?.role === "admin" && location.pathname === "/") {
       navigate("/admin");
@@ -83,11 +89,13 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
-        
-        {/* Protected Routes */}
-        <Route path="/product/:id" element={<ProductDetail />} />
+
+        {/* Auth */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+
+        {/* Product Detail */}
+        <Route path="/product/:id" element={<ProductDetail />} />
 
         {/* Customer Account */}
         <Route path="/account" element={<MyAccount />} />
@@ -118,7 +126,18 @@ function App() {
           path="/admin/orders"
           element={currentUser?.role === "admin" ? <ManageOrders /> : <Navigate to="/" />}
         />
-        
+        <Route
+          path="/admin/orders/:id"
+          element={currentUser?.role === "admin" ? <ViewOrderDetails /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/admin/orders/confirmed"
+          element={currentUser?.role === "admin" ? <ConfirmedOrders /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/admin/orders/declined"
+          element={currentUser?.role === "admin" ? <DeclinedOrders /> : <Navigate to="/" />}
+        />
       </Routes>
     </>
   );
