@@ -70,7 +70,7 @@ const MyAccount = () => {
         )}
 
         {/* Recent Orders */}
-        <OrderHistory />
+        <OrderHistory limitCount={3}/>
 
         {/* Wishlist */}
         <Section title="WISHLIST" subtitle="This list is empty." />

@@ -27,6 +27,7 @@ import AddressBook from "./pages/account/address/AddressBook";
 import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
 import OrdersPage from "./pages/account/userOrders/OrderHistory";
+import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
@@ -97,6 +98,7 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders" element={<OrdersPage />} />
+        <Route path="/orders/:id" element={<UserOrderDetails />} />
 
         {/* Auth */}
         <Route path="/register" element={<Register />} />

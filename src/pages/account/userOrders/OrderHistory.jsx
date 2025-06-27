@@ -8,12 +8,12 @@ import {
   limit,
   where,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom"; // ✅ Add this
 
-const OrderHistory = () => {
+const OrderHistory = ({ limitCount }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // ✅ Define navigate
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -30,13 +30,15 @@ const OrderHistory = () => {
       try {
         const ordersRef = collection(db, "orders");
 
-        // Query: user-specific + latest 3 orders
-        const q = query(
+        let q = query(
           ordersRef,
           where("userId", "==", user.uid),
-          orderBy("createdAt", "desc"),
-          limit(3)
+          orderBy("createdAt", "desc")
         );
+
+        if (typeof limitCount === "number") {
+          q = query(q, limit(limitCount));
+        }
 
         const snapshot = await getDocs(q);
 
@@ -49,14 +51,13 @@ const OrderHistory = () => {
         setOrders(orderList);
       } catch (error) {
         console.error("Failed to fetch orders:", error.message || error);
-        // You may show a fallback error UI here
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrders();
-  }, []);
+  }, [limitCount]);
 
   const renderDate = (createdAt) => {
     if (!createdAt) return "N/A";
@@ -71,12 +72,6 @@ const OrderHistory = () => {
     <div className="border rounded p-4">
       <div className="flex justify-between items-center mb-1">
         <h3 className="text-md font-semibold">RECENT ORDERS</h3>
-        <button
-          onClick={() => navigate("/orders")}
-          className="text-blue-600 text-sm underline"
-        >
-          View All Orders
-        </button>
       </div>
 
       {loading ? (
@@ -86,7 +81,11 @@ const OrderHistory = () => {
       ) : (
         <div className="text-sm text-gray-700 space-y-2">
           {orders.map((order) => (
-            <div key={order.id} className="border p-2 rounded">
+            <div
+              key={order.id}
+              className="border p-2 rounded cursor-pointer hover:bg-gray-50"
+              onClick={() => navigate(`/orders/${order.id}`)} // ✅ Works now
+            >
               <div><strong>Order ID:</strong> {order.id}</div>
               <div><strong>Total:</strong> ${Number(order.total || 0).toFixed(2)}</div>
               <div><strong>Status:</strong> {order.status || "Processing"}</div>
