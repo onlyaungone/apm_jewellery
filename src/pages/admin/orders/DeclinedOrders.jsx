@@ -46,7 +46,7 @@ const DeclinedOrders = () => {
               <thead>
                 <tr className="bg-gray-200 text-left text-sm font-semibold">
                   <th className="p-4">Order ID</th>
-                  <th className="p-4">Customer</th>
+                  <th className="p-4">Customer ID</th>
                   <th className="p-4">Total</th>
                   <th className="p-4">Status</th>
                   <th className="p-4">Date</th>
@@ -56,7 +56,7 @@ const DeclinedOrders = () => {
                 {declinedOrders.map((order) => (
                   <tr key={order.id} className="border-t">
                     <td className="p-4">{order.id}</td>
-                    <td className="p-4">{order.customerName || "N/A"}</td>
+                    <td className="p-4">{order.userId || "N/A"}</td>
                     <td className="p-4">${order.total?.toFixed(2)}</td>
                     <td className="p-4 text-red-500 font-medium">
                       {order.status}

@@ -1,15 +1,18 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
 import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 
 const ProductDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
+  const [user, setUser] = useState(null);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -23,7 +26,15 @@ const ProductDetail = () => {
         setSelectedSize(data.sizes?.[0]?.size || "");
       }
     };
+
     fetchProduct();
+
+    const auth = getAuth();
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
   }, [id]);
 
   const selectedSizeObj = product?.sizes?.find(
@@ -31,12 +42,21 @@ const ProductDetail = () => {
   );
 
   const handleAddToCart = () => {
-    if (selectedSize) {
-        addToCart(product, selectedSizeObj);
-        toast.success(`Added "${product.name}" (size: ${selectedSizeObj.size}) to cart for $${selectedSizeObj.price}`);
-    } else {
-        toast.error("Please select a size");
+    if (!user) {
+      toast.error("Please log in to add items to your cart.");
+      setTimeout(() => navigate("/login"), 1500);
+      return;
     }
+
+    if (!selectedSize) {
+      toast.error("Please select a size");
+      return;
+    }
+
+    addToCart(product, selectedSizeObj);
+    toast.success(
+      `Added "${product.name}" (size: ${selectedSizeObj.size}) to cart for $${selectedSizeObj.price}`
+    );
   };
 
   if (!product) {
@@ -80,21 +100,25 @@ const ProductDetail = () => {
         {selectedSizeObj && (
           <div className="mb-4">
             {selectedSizeObj.discount > 0 ? (
-            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4">
                 <span className="text-red-600 text-2xl font-semibold">
-                A${(selectedSizeObj.price - (selectedSizeObj.price * selectedSizeObj.discount) / 100).toFixed(2)}
+                  A$
+                  {(
+                    selectedSizeObj.price -
+                    (selectedSizeObj.price * selectedSizeObj.discount) / 100
+                  ).toFixed(2)}
                 </span>
                 <span className="line-through text-black text-lg">
-                A${parseFloat(selectedSizeObj.price).toFixed(2)}
+                  A${parseFloat(selectedSizeObj.price).toFixed(2)}
                 </span>
                 <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">
-                SAVE {selectedSizeObj.discount}%
+                  SAVE {selectedSizeObj.discount}%
                 </span>
-            </div>
+              </div>
             ) : (
-            <span className="text-black text-2xl font-semibold">
+              <span className="text-black text-2xl font-semibold">
                 A${parseFloat(selectedSizeObj.price).toFixed(2)}
-            </span>
+              </span>
             )}
           </div>
         )}
@@ -105,12 +129,22 @@ const ProductDetail = () => {
 
         {/* Highlights */}
         <ul className="list-disc pl-5 mb-4 text-sm text-gray-600">
-          {product.highlights?.shiningExample && <li>{product.highlights.shiningExample}</li>}
+          {product.highlights?.shiningExample && (
+            <li>{product.highlights.shiningExample}</li>
+          )}
           {product.highlights?.love && <li>{product.highlights.love}</li>}
-          {product.highlights?.importantInformation && <li>{product.highlights.importantInformation}</li>}
-          {product.highlights?.handFinished && <li>{product.highlights.handFinished}</li>}
-          {product.highlights?.keepPerfect && <li>{product.highlights.keepPerfect}</li>}
-          {product.highlights?.workWith && <li>{product.highlights.workWith}</li>}
+          {product.highlights?.importantInformation && (
+            <li>{product.highlights.importantInformation}</li>
+          )}
+          {product.highlights?.handFinished && (
+            <li>{product.highlights.handFinished}</li>
+          )}
+          {product.highlights?.keepPerfect && (
+            <li>{product.highlights.keepPerfect}</li>
+          )}
+          {product.highlights?.workWith && (
+            <li>{product.highlights.workWith}</li>
+          )}
           {product.highlights?.dimensions && (
             <li>Dimensions: {product.highlights.dimensions}</li>
           )}

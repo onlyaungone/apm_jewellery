@@ -15,6 +15,15 @@ import AdminNavbar from "../../../components/AdminNavbar";
 import { toast } from "react-hot-toast";
 
 const ManageOrders = () => {
+
+  const calculateTotalFromItems = (items = []) => {
+    return items.reduce((sum, item) => {
+      const quantity = Number(item.quantity) || 0;
+      const price = Number(item.price) || 0;
+      return sum + quantity * price;
+    }, 0);
+  };
+
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState("createdAt");
@@ -86,17 +95,19 @@ const ManageOrders = () => {
             const sizes = productData.sizes || [];
 
             // Find the size object and update its quantity
-            const sizeIndex = sizes.findIndex(s => s.size === item.size);
-            if (sizeIndex !== -1) {
-            const currentQty = parseInt(sizes[sizeIndex].quantity, 10) || 0;
-            const newQty = Math.max(currentQty - item.quantity, 0);
-            sizes[sizeIndex].quantity = newQty;
-
-            // Update product with new sizes array
-            await updateDoc(productRef, { sizes });
-            } else {
-            console.warn(`Size '${item.size}' not found for product ${item.productId}`);
+            const updatedSizes = sizes.map((s) => {
+            if (s.size.toLowerCase() === item.size.toLowerCase()) {
+                const currentQty = parseInt(s.quantity, 10) || 0;
+                const newQty = Math.max(currentQty - item.quantity, 0);
+                return { ...s, quantity: newQty };
             }
+            return s;
+            });
+            const sizeMatched = sizes.some(s => s.size.toLowerCase() === item.size.toLowerCase());
+            if (!sizeMatched) {
+            console.warn(`No matching size found for "${item.size}" in product ${item.productId}`);
+            }
+            await updateDoc(productRef, { sizes: updatedSizes });
         }
         }
 
@@ -175,7 +186,9 @@ const ManageOrders = () => {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-2 px-4 border-b">{order.id}</td>
                     <td className="py-2 px-4 border-b">{order.userId}</td>
-                    <td className="py-2 px-4 border-b">${Number(order.total || 0).toFixed(2)}</td>
+                    <td className="py-2 px-4 border-b">
+                        ${calculateTotalFromItems(order.items).toFixed(2)}
+                    </td>
                     <td className={`py-2 px-4 border-b font-semibold ${getStatusColor(order.status)}`}>
                       {order.status}
                     </td>

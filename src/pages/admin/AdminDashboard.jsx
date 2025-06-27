@@ -41,9 +41,22 @@ const AdminDashboard = () => {
       );
 
       let totalRevenue = 0;
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+
       const allOrdersSnap = await getDocs(collection(db, "orders"));
       allOrdersSnap.forEach((doc) => {
-        totalRevenue += doc.data()?.total || 0;
+        const data = doc.data();
+        const createdAt = data?.createdAt?.toDate?.();
+        const isThisMonth =
+          createdAt &&
+          createdAt.getMonth() === currentMonth &&
+          createdAt.getFullYear() === currentYear;
+
+        if (data.status !== "Cancelled" && isThisMonth) {
+          totalRevenue += parseFloat(data.total) || 0;
+        }
       });
 
       setStats({
