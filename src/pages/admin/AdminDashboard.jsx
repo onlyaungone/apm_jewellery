@@ -14,35 +14,42 @@ const AdminDashboard = () => {
     users: 0,
     admins: 0,
     monthlyRevenue: 0,
+    pendingOrdersList: [],
   });
 
   useEffect(() => {
     const fetchStats = async () => {
-        const productsSnap = await getDocs(collection(db, "products"));
+      const productsSnap = await getDocs(collection(db, "products"));
 
-        const usersQuery = query(collection(db, "users"), where("role", "==", "user"));
-        const usersSnap = await getDocs(usersQuery);
+      const usersQuery = query(collection(db, "users"), where("role", "==", "user"));
+      const usersSnap = await getDocs(usersQuery);
 
-        const adminsQuery = query(collection(db, "users"), where("role", "==", "admin"));
-        const adminsSnap = await getDocs(adminsQuery);
+      const adminsQuery = query(collection(db, "users"), where("role", "==", "admin"));
+      const adminsSnap = await getDocs(adminsQuery);
 
-        const pendingOrdersSnap = await getDocs(
-        query(collection(db, "orders"), where("status", "==", "pending"))
-        );
+      const pendingOrdersSnap = await getDocs(
+        query(collection(db, "orders"), where("status", "==", "Processing"))
+      );
 
-        let totalRevenue = 0;
-        const allOrdersSnap = await getDocs(collection(db, "orders"));
-        allOrdersSnap.forEach((doc) => {
+      const pendingList = pendingOrdersSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      let totalRevenue = 0;
+      const allOrdersSnap = await getDocs(collection(db, "orders"));
+      allOrdersSnap.forEach((doc) => {
         totalRevenue += doc.data()?.total || 0;
-        });
+      });
 
-        setStats({
+      setStats({
         totalProducts: productsSnap.size,
         pendingOrders: pendingOrdersSnap.size,
         users: usersSnap.size,
         admins: adminsSnap.size,
         monthlyRevenue: totalRevenue,
-        });
+        pendingOrdersList: pendingList,
+      });
     };
 
     fetchStats();
@@ -70,7 +77,7 @@ const AdminDashboard = () => {
           <h1 className="text-3xl font-semibold mb-6">Welcome, Admin</h1>
           <p className="text-gray-700 mb-4">Use the sidebar to manage your store.</p>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
             <StatCard label="Total Products" value={stats.totalProducts} />
             <StatCard label="Pending Orders" value={stats.pendingOrders} />
             <StatCard label="Users" value={stats.users} />

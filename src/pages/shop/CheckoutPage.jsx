@@ -1,38 +1,78 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useCart } from "../../context/CartContext";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
-  CardElement,
+  CardNumberElement,
+  CardExpiryElement,
+  CardCvcElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import { useAuth } from "../../context/AuthContext";
 
 const CheckoutPage = () => {
-  const { cartItems, setCartItems } = useCart();
+  const { currentUser } = useAuth();
+  const { cartItems, clearCart } = useCart();
   const [validating, setValidating] = useState(false);
-  const [email, setEmail] = useState("");
+  const [address, setAddress] = useState(null);
+  const [productImages, setProductImages] = useState({});
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
 
-  const calculateTotal = () => {
-    return cartItems
+  const calculateTotal = () =>
+    cartItems
       .reduce((total, item) => {
         const discountedPrice = item.price * (1 - item.discount / 100);
         return total + discountedPrice * item.quantity;
       }, 0)
       .toFixed(2);
-  };
+
+  useEffect(() => {
+    const fetchAddress = async () => {
+      if (!currentUser?.uid) return;
+      const addressRef = collection(db, `users/${currentUser.uid}/addresses`);
+      const snapshot = await getDocs(addressRef);
+      if (!snapshot.empty) {
+        setAddress(snapshot.docs[0].data());
+      }
+    };
+    fetchAddress();
+  }, [currentUser]);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+      const imagesMap = {};
+      for (const item of cartItems) {
+        const docRef = doc(db, "products", item.productId);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          imagesMap[item.productId] = data.images?.[0] || null;
+        }
+      }
+      setProductImages(imagesMap);
+    };
+    if (cartItems.length > 0) fetchImages();
+  }, [cartItems]);
 
   const validateStockAndCheckout = async (e) => {
     e.preventDefault();
     setValidating(true);
 
     try {
-      // 🔎 Validate stock
+      // Stock validation
       for (const item of cartItems) {
         const docRef = doc(db, "products", item.productId);
         const docSnap = await getDoc(docRef);
@@ -45,24 +85,26 @@ const CheckoutPage = () => {
         const product = docSnap.data();
         const sizeObj = product.sizes.find((s) => s.size === item.size);
         if (!sizeObj || sizeObj.stock < item.quantity) {
-          toast.error(`Only ${sizeObj?.stock || 0} left for ${item.productName} (${item.size})`);
+          toast.error(
+            `Only ${sizeObj?.stock || 0} left for ${item.productName} (${item.size})`
+          );
           setValidating(false);
           return;
         }
       }
 
-      // 💳 Stripe payment simulation (no server-side intent in this mock)
+      // Stripe validation
       if (!stripe || !elements) {
         toast.error("Stripe not initialized.");
         setValidating(false);
         return;
       }
 
-      const cardElement = elements.getElement(CardElement);
-      const { error, paymentMethod } = await stripe.createPaymentMethod({
+      const cardNumberElement = elements.getElement(CardNumberElement);
+      const { error } = await stripe.createPaymentMethod({
         type: "card",
-        card: cardElement,
-        billing_details: { email },
+        card: cardNumberElement,
+        billing_details: { email: currentUser?.email },
       });
 
       if (error) {
@@ -71,21 +113,34 @@ const CheckoutPage = () => {
         return;
       }
 
-      // ✅ Simulate order success and update stock
+      // Reduce stock
       for (const item of cartItems) {
         const docRef = doc(db, "products", item.productId);
-        const docSnap = await getDoc(docRef);
-        const product = docSnap.data();
-
+        const product = (await getDoc(docRef)).data();
         const updatedSizes = product.sizes.map((s) =>
           s.size === item.size ? { ...s, stock: s.stock - item.quantity } : s
         );
-
         await updateDoc(docRef, { sizes: updatedSizes });
       }
 
+      // Save order to Firestore
+      const orderData = {
+        userId: currentUser.uid,
+        email: currentUser?.email || "",
+        address,
+        items: cartItems,
+        total: parseFloat(calculateTotal()),
+        status: "Processing",
+        createdAt: serverTimestamp(),
+      };
+      // 1. Save to global /orders
+      await addDoc(collection(db, "orders"), orderData);
+
+      // 2. Save to user subcollection /users/{uid}/orders
+      await addDoc(collection(db, `users/${currentUser.uid}/orders`), orderData);
+
       toast.success("Payment successful. Order placed!");
-      setCartItems([]);
+      clearCart();
       navigate("/order-success");
     } catch (err) {
       console.error(err);
@@ -99,13 +154,42 @@ const CheckoutPage = () => {
     <div className="max-w-xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-4">Review & Confirm Your Order</h1>
 
+      {address ? (
+        <div className="mb-6 border p-4 rounded bg-gray-50 text-sm">
+          <h2 className="font-semibold mb-1">Shipping Address</h2>
+          <p>{`${address.firstName} ${address.lastName}`}</p>
+          <p>{address.phone}</p>
+          <p>{address.address1}</p>
+          <p>{`${address.suburb}, ${address.town}, ${address.postalCode}`}</p>
+          <p>{address.country}</p>
+        </div>
+      ) : (
+        <p className="text-sm mb-6 text-red-600">
+          No address found. Please add it in your account.
+        </p>
+      )}
+
       {cartItems.map((item) => (
         <div key={item.key} className="mb-4 border p-4 rounded">
-          <p><strong>{item.productName}</strong> (Size: {item.size})</p>
-          <p>Qty: {item.quantity}</p>
-          <p>
-            Price: ${(item.price * (1 - item.discount / 100)).toFixed(2)}
-          </p>
+          <div className="flex gap-4">
+            {productImages[item.productId] && (
+              <img
+                src={productImages[item.productId]}
+                alt={item.productName}
+                className="w-20 h-20 object-cover rounded border"
+              />
+            )}
+            <div>
+              <p>
+                <strong>{item.productName}</strong> (Size: {item.size})
+              </p>
+              <p>Qty: {item.quantity}</p>
+              <p>
+                Price: $
+                {(item.price * (1 - item.discount / 100)).toFixed(2)}
+              </p>
+            </div>
+          </div>
         </div>
       ))}
 
@@ -114,17 +198,29 @@ const CheckoutPage = () => {
           Email:
           <input
             type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full border rounded px-3 py-2"
+            value={currentUser?.email || ""}
+            disabled
+            className="mt-1 w-full border rounded px-3 py-2 bg-gray-100 cursor-not-allowed text-gray-500"
           />
         </label>
 
-        <label className="block text-sm font-medium">
-          Card Information:
-          <CardElement className="mt-1 border px-3 py-2 rounded" />
-        </label>
+        <div className="space-y-4">
+          <label className="block text-sm font-medium">
+            Card Number:
+            <CardNumberElement className="mt-1 border px-3 py-2 rounded w-full" />
+          </label>
+
+          <div className="grid grid-cols-2 gap-4">
+            <label className="block text-sm font-medium">
+              Expiry:
+              <CardExpiryElement className="mt-1 border px-3 py-2 rounded w-full" />
+            </label>
+            <label className="block text-sm font-medium">
+              CVC:
+              <CardCvcElement className="mt-1 border px-3 py-2 rounded w-full" />
+            </label>
+          </div>
+        </div>
 
         <p className="text-xl font-bold mt-4">
           Total: <span className="text-green-600">${calculateTotal()}</span>

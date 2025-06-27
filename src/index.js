@@ -9,7 +9,7 @@ import { CartProvider } from "./context/CartContext";
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe('pk_test_your_key_here');
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(

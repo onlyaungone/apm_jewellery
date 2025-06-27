@@ -25,6 +25,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
 import EditProduct from "./pages/admin/products/EditProduct";
+import ManageOrders from "./pages/admin/orders/ManageOrders";
+
 import HomePage from "./pages/HomePage";
 import Shop from "./pages/shop/Shop";
 import ProductDetail from "./pages/shop/ProductDetail";
@@ -39,19 +41,19 @@ function App() {
   const navigate = useNavigate();
   const isAdminRoute = location.pathname.startsWith("/admin");
 
-  // ✅ Firebase Auth logging
+  // Firebase Auth logging
   useEffect(() => {
-    const auth = getAuth();
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Current user:", user);
-        console.log("✅ Logged in user email:", user.email);
-        console.log("✅ Logged in user UID:", user.uid);
-      } else {
-        console.log("❌ No user is logged in");
-      }
-    });
-    return () => unsubscribe();
+  const auth = getAuth();
+  const unsubscribe = onAuthStateChanged(auth, (user) => {
+    if (user) {
+      console.log("Current user:", user);
+      console.log("✅ Logged in user email:", user.email);
+      console.log("✅ Logged in user UID:", user.uid);
+    } else {
+      console.log("❌ No user is logged in");
+    }
+  });
+  return () => unsubscribe();
   }, []);
 
   // ⛳ Admin auto-redirect from "/" to "/admin"
@@ -112,6 +114,11 @@ function App() {
           path="/admin/products/edit/:id"
           element={currentUser?.role === "admin" ? <EditProduct /> : <Navigate to="/" />}
         />
+        <Route
+          path="/admin/orders"
+          element={currentUser?.role === "admin" ? <ManageOrders /> : <Navigate to="/" />}
+        />
+        
       </Routes>
     </>
   );
