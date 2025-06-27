@@ -69,7 +69,13 @@ const ConfirmedOrders = () => {
     const resolvedItems = await Promise.all(
       (order.items || []).map(async (item) => {
         const name = item.name || (item.productId ? await getProductName(item.productId) : "Unnamed Item");
-        return { ...item, name };
+        const quantity = Number(item.quantity) || 0;
+        const price = Number(item.price) || 0;
+        const discount = Number(item.discount) || 0;
+        const discountedPrice = price * (1 - discount / 100);
+        const total = discountedPrice * quantity;
+
+        return { ...item, name, quantity, price, discount, discountedPrice, total };
       })
     );
 
@@ -77,7 +83,7 @@ const ConfirmedOrders = () => {
     input.querySelector(".order-email").innerText = userInfo.email;
     input.querySelector(".order-address").innerText = userInfo.address;
     input.querySelector(".order-total").innerText = resolvedItems
-      .reduce((sum, item) => sum + item.quantity * item.price, 0)
+      .reduce((sum, item) => sum + item.total, 0)
       .toFixed(2);
 
     const itemsContainer = input.querySelector(".order-items");
@@ -87,8 +93,8 @@ const ConfirmedOrders = () => {
       row.innerHTML = `
         <td class="border px-4 py-2">${item.name}</td>
         <td class="border px-4 py-2">${item.quantity}</td>
-        <td class="border px-4 py-2">$${item.price.toFixed(2)}</td>
-        <td class="border px-4 py-2">$${(item.quantity * item.price).toFixed(2)}</td>
+        <td class="border px-4 py-2">$${item.discountedPrice.toFixed(2)}</td>
+        <td class="border px-4 py-2">$${item.total.toFixed(2)}</td>
       `;
       itemsContainer.appendChild(row);
     });
@@ -178,8 +184,8 @@ const ConfirmedOrders = () => {
 
                           <div className="text-right text-lg">
                             <p>
-                                <strong>Total Paid:</strong> $
-                                <span className="order-total"></span>
+                              <strong>Total Paid:</strong> $
+                              <span className="order-total"></span>
                             </p>
                           </div>
 

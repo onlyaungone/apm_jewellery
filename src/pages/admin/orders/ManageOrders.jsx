@@ -17,12 +17,14 @@ import { toast } from "react-hot-toast";
 const ManageOrders = () => {
 
   const calculateTotalFromItems = (items = []) => {
-    return items.reduce((sum, item) => {
-      const quantity = Number(item.quantity) || 0;
-      const price = Number(item.price) || 0;
-      return sum + quantity * price;
-    }, 0);
-  };
+  return items.reduce((sum, item) => {
+    const quantity = Number(item.quantity) || 0;
+    const price = Number(item.price) || 0;
+    const discount = Number(item.discount) || 0;
+    const discountedPrice = price * (1 - discount / 100);
+    return sum + quantity * discountedPrice;
+  }, 0);
+};
 
   const [orders, setOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
