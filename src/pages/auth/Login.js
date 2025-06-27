@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "../../utils/firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -48,24 +48,38 @@ const Login = () => {
       const userDocRef = doc(db, "users", user.uid);
       const userSnap = await getDoc(userDocRef);
 
-      if (userSnap.exists()) {
+      if (!userSnap.exists()) {
+        // Create user document if it doesn't exist
+        await setDoc(userDocRef, {
+          firstName: user.displayName?.split(" ")[0] || "",
+          lastName: user.displayName?.split(" ")[1] || "",
+          email: user.email,
+          role: "user", // ensure default role
+          newsletter: true,
+          createdAt: new Date(),
+          isBlocked: false,
+        });
+        alert("Account created via Google!");
+      } else {
         const userData = userSnap.data();
 
         if (userData.isBlocked) {
           alert("Your account has been blocked. Please contact support.");
           return;
         }
+      }
 
-        if (userData.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+      const userData = (await getDoc(userDocRef)).data();
+
+      alert("Login successful!");
+      if (userData.role === "admin") {
+        navigate("/admin");
       } else {
-        alert("User data not found.");
+        navigate("/");
       }
     } catch (error) {
       console.error("Google sign-in error:", error.message);
+      alert("Google sign-in failed: " + error.message);
     }
   };
 

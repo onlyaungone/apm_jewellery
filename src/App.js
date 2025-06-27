@@ -16,6 +16,7 @@ import Login from "./pages/auth/Login";
 
 // Shared
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import { useAuth } from "./context/AuthContext";
 
 // Customer Account
@@ -25,10 +26,13 @@ import ChangePassword from "./pages/account/ChangePassword";
 import AddressBook from "./pages/account/address/AddressBook";
 import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
+import OrdersPage from "./pages/account/userOrders/OrderHistory";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ManageUsers from "./pages/admin/ManageUsers";
+import AdminReports from "./pages/admin/AdminReports";
+
 // Admin Products
 import AdminProducts from "./pages/admin/products/AdminProducts";
 import AddProduct from "./pages/admin/products/AddProduct";
@@ -37,6 +41,7 @@ import ManageOrders from "./pages/admin/orders/ManageOrders";
 import ViewOrderDetails from "./pages/admin/orders/ViewOrderDetails";
 import ConfirmedOrders from "./pages/admin/orders/ConfirmedOrders";
 import DeclinedOrders from "./pages/admin/orders/DeclinedOrders";
+
 
 // Shop
 import HomePage from "./pages/HomePage";
@@ -91,6 +96,7 @@ function App() {
         <Route path="/shop" element={<Shop />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
+        <Route path="/orders" element={<OrdersPage />} />
 
         {/* Auth */}
         <Route path="/register" element={<Register />} />
@@ -144,8 +150,13 @@ function App() {
           path="/admin/users"
           element={currentUser?.role === "admin" ? <ManageUsers /> : <Navigate to="/" />}
         />
-
+        <Route path="/admin/reports" 
+        element={currentUser?.role === "admin" ? <AdminReports /> : <Navigate to="/" />} 
+        />
       </Routes>
+
+      {/* Footer */}
+      {!isAdminRoute && <Footer />}
     </>
   );
 }

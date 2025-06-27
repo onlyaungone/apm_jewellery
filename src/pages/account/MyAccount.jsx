@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { auth, db } from "../../utils/firebaseConfig";
 import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import OrderHistory from "./userOrders/OrderHistory";
 
 const MyAccount = () => {
   const [userData, setUserData] = useState(null);
@@ -57,7 +58,7 @@ const MyAccount = () => {
               </>
             }
             link="View"
-            to={`/address-book/`}
+            to="/address-book"
           />
         ) : (
           <Section
@@ -69,7 +70,7 @@ const MyAccount = () => {
         )}
 
         {/* Recent Orders */}
-        <Section title="RECENT ORDER" subtitle="No orders are available" link="View All Orders" to="/orders" />
+        <OrderHistory />
 
         {/* Wishlist */}
         <Section title="WISHLIST" subtitle="This list is empty." />
@@ -120,7 +121,13 @@ const Section = ({ title, subtitle, link, to }) => {
           </button>
         )}
       </div>
-      <p className="text-sm text-gray-600">{subtitle}</p>
+
+      {/* Safe rendering: only wrap strings in <p> */}
+      {typeof subtitle === "string" ? (
+        <p className="text-sm text-gray-600">{subtitle}</p>
+      ) : (
+        <div className="text-sm text-gray-600">{subtitle}</div>
+      )}
     </div>
   );
 };

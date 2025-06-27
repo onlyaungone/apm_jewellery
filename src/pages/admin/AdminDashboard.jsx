@@ -83,12 +83,12 @@ const AdminDashboard = () => {
         <aside className="w-full md:w-64 bg-white shadow-md p-6">
           <h2 className="text-2xl font-bold text-gray-800 mb-8">Admin Panel</h2>
           <nav className="space-y-4 text-gray-700">
-            <Link to="/admin/products" className="block hover:text-black">📦 Manage Products</Link>
-            <Link to="/admin/orders" className="block hover:text-black">🧾 Manage Orders</Link>
-            <Link to="/admin/orders/confirmed" className="block hover:text-black">✅ Confirmed Orders</Link>
-            <Link to="/admin/orders/declined" className="block hover:text-black">❌ Declined Orders</Link>
-            <Link to="/admin/users" className="block hover:text-black">👥 Manage Users</Link>
-            <Link to="#" className="block hover:text-black">📊 View Reports</Link>
+            <Link to="/admin/products" className="block hover:text-black">Manage Products</Link>
+            <Link to="/admin/orders" className="block hover:text-black">Manage Orders</Link>
+            <Link to="/admin/orders/confirmed" className="block hover:text-black">Confirmed Orders</Link>
+            <Link to="/admin/orders/declined" className="block hover:text-black">Declined Orders</Link>
+            <Link to="/admin/users" className="block hover:text-black">Manage Users</Link>
+            <Link to="/admin/reports" className="block hover:text-black">View Reports</Link>
           </nav>
         </aside>
 

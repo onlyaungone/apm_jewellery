@@ -94,6 +94,7 @@ const Register = () => {
         firstName: user.displayName?.split(" ")[0] || "",
         lastName: user.displayName?.split(" ")[1] || "",
         email: user.email,
+        role: "user",
         newsletter: true,
       });
 

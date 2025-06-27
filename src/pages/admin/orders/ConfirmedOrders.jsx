@@ -201,7 +201,7 @@ const ConfirmedOrders = () => {
                               <strong>You Saved:</strong> $<span className="order-saved"></span>
                             </p>
                             <p>
-                              <strong>Total Paid:</strong> $<span className="order-total"></span>
+                              <strong>Total Amount:</strong> $<span className="order-total"></span>
                             </p>
                           </div>
 
