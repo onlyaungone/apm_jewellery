@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
+} from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "../../utils/firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
@@ -7,11 +13,18 @@ import { useNavigate, Link } from "react-router-dom";
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
+      const persistence = rememberMe
+        ? browserLocalPersistence
+        : browserSessionPersistence;
+
+      await setPersistence(auth, persistence);
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
@@ -27,16 +40,16 @@ const Login = () => {
         }
 
         alert("Login successful!");
-        if (userData.role === "admin") {
-          navigate("/admin");
-        } else {
-          navigate("/");
-        }
+        navigate(userData.role === "admin" ? "/admin" : "/");
       } else {
         alert("User data not found in Firestore.");
       }
     } catch (err) {
-      alert(err.message);
+      if (err.code === "auth/invalid-credential") {
+        alert("Invalid email or password.");
+      } else {
+        alert("Login failed: " + err.message);
+      }
     }
   };
 
@@ -49,20 +62,17 @@ const Login = () => {
       const userSnap = await getDoc(userDocRef);
 
       if (!userSnap.exists()) {
-        // Create user document if it doesn't exist
         await setDoc(userDocRef, {
           firstName: user.displayName?.split(" ")[0] || "",
           lastName: user.displayName?.split(" ")[1] || "",
           email: user.email,
-          role: "user", // ensure default role
+          role: "user",
           newsletter: true,
           createdAt: new Date(),
           isBlocked: false,
         });
-        alert("Account created via Google!");
       } else {
         const userData = userSnap.data();
-
         if (userData.isBlocked) {
           alert("Your account has been blocked. Please contact support.");
           return;
@@ -70,13 +80,8 @@ const Login = () => {
       }
 
       const userData = (await getDoc(userDocRef)).data();
-
-      alert("Login successful!");
-      if (userData.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      alert("Login successful! via Google!");
+      navigate(userData.role === "admin" ? "/admin" : "/");
     } catch (error) {
       console.error("Google sign-in error:", error.message);
       alert("Google sign-in failed: " + error.message);
@@ -112,12 +117,17 @@ const Login = () => {
 
           <div className="flex items-center justify-between text-sm text-gray-600">
             <label className="flex items-center space-x-2">
-              <input type="checkbox" className="form-checkbox" />
+              <input
+                type="checkbox"
+                className="form-checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+              />
               <span>Remember me</span>
             </label>
-            <span className="cursor-pointer hover:underline text-blue-600">
+            <Link to="/forget-password" className="cursor-pointer hover:underline text-blue-600">
               Forgot Password?
-            </span>
+            </Link>
           </div>
 
           <button
@@ -142,8 +152,8 @@ const Login = () => {
         </div>
 
         <p className="text-xs text-gray-500 mt-6 text-center">
-          Pandora Jewelry Pty Ltd collects and manages all customer data in
-          compliance with Privacy Law and Pandora's{" "}
+          APM Jewelry Pty Ltd collects and manages all customer data in
+          compliance with Privacy Law and APM's{" "}
           <span className="underline cursor-pointer">Privacy Policy</span>.
         </p>
 

@@ -99,7 +99,7 @@ const Register = () => {
       });
 
       alert("Google sign-in successful!");
-      navigate("/");
+      navigate("/set-password");
     } catch (error) {
       alert("Google sign-in failed: " + error.message);
     }

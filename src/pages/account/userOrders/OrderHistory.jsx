@@ -8,12 +8,12 @@ import {
   limit,
   where,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom"; // ✅ Add this
+import { useNavigate } from "react-router-dom";
 
 const OrderHistory = ({ limitCount }) => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const navigate = useNavigate(); // ✅ Define navigate
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -25,11 +25,8 @@ const OrderHistory = ({ limitCount }) => {
         return;
       }
 
-      console.log("Fetching orders for UID:", user.uid);
-
       try {
         const ordersRef = collection(db, "orders");
-
         let q = query(
           ordersRef,
           where("userId", "==", user.uid),
@@ -41,13 +38,11 @@ const OrderHistory = ({ limitCount }) => {
         }
 
         const snapshot = await getDocs(q);
-
         const orderList = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        console.log("Fetched orders:", orderList);
         setOrders(orderList);
       } catch (error) {
         console.error("Failed to fetch orders:", error.message || error);
@@ -70,8 +65,16 @@ const OrderHistory = ({ limitCount }) => {
 
   return (
     <div className="border rounded p-4">
-      <div className="flex justify-between items-center mb-1">
+      <div className="flex justify-between items-center mb-2">
         <h3 className="text-md font-semibold">RECENT ORDERS</h3>
+        {typeof limitCount === "number" && (
+          <button
+            onClick={() => navigate("/orders")}
+            className="text-blue-600 text-sm underline"
+          >
+            View All Orders
+          </button>
+        )}
       </div>
 
       {loading ? (
@@ -84,7 +87,7 @@ const OrderHistory = ({ limitCount }) => {
             <div
               key={order.id}
               className="border p-2 rounded cursor-pointer hover:bg-gray-50"
-              onClick={() => navigate(`/orders/${order.id}`)} // ✅ Works now
+              onClick={() => navigate(`/orders/${order.id}`)}
             >
               <div><strong>Order ID:</strong> {order.id}</div>
               <div><strong>Total:</strong> ${Number(order.total || 0).toFixed(2)}</div>

@@ -1,10 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, deleteDoc, getDoc as fetchDoc } from "firebase/firestore";
 import { db } from "../../utils/firebaseConfig";
 import { useCart } from "../../context/CartContext";
 import toast from "react-hot-toast";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
+import {
+  FaGem,
+  FaHeart,
+  FaInfoCircle,
+  FaHandHoldingHeart,
+  FaStar,
+  FaRulerCombined,
+  FaPencilAlt,
+  FaRegHeart,
+} from "react-icons/fa";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -13,6 +23,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("");
   const [selectedImage, setSelectedImage] = useState("");
   const [user, setUser] = useState(null);
+  const [wishlistAdded, setWishlistAdded] = useState(false);
   const { addToCart } = useCart();
 
   useEffect(() => {
@@ -27,11 +38,17 @@ const ProductDetail = () => {
       }
     };
 
+    const checkWishlist = async (userId) => {
+      const wishDoc = await fetchDoc(doc(db, "users", userId, "wishlist", id));
+      setWishlistAdded(wishDoc.exists());
+    };
+
     fetchProduct();
 
     const auth = getAuth();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
+      if (currentUser) checkWishlist(currentUser.uid);
     });
 
     return () => unsubscribe();
@@ -59,6 +76,33 @@ const ProductDetail = () => {
     );
   };
 
+  const handleWishlistToggle = async () => {
+    if (!user) {
+      toast.error("Please log in to add to wishlist.");
+      setTimeout(() => navigate("/login"), 1500);
+      return;
+    }
+
+    const wishRef = doc(db, "users", user.uid, "wishlist", product.docId);
+    try {
+      if (wishlistAdded) {
+        await deleteDoc(wishRef);
+        toast.success("Removed from Wishlist.");
+        setWishlistAdded(false);
+      } else {
+        await setDoc(wishRef, {
+          ...product,
+          addedAt: new Date(),
+        });
+        toast.success("Added to Wishlist!");
+        setWishlistAdded(true);
+      }
+    } catch (error) {
+      toast.error("Wishlist update failed.");
+      console.error(error);
+    }
+  };
+
   if (!product) {
     return <div className="p-8 text-center">Loading product...</div>;
   }
@@ -79,7 +123,7 @@ const ProductDetail = () => {
               src={img}
               alt={`Preview ${idx}`}
               className={`w-20 h-20 border rounded cursor-pointer ${
-                selectedImage === img ? "ring-2 ring-indigo-500" : ""
+                selectedImage === img ? "ring-2 ring-gray-500" : ""
               }`}
               onClick={() => setSelectedImage(img)}
             />
@@ -89,14 +133,23 @@ const ProductDetail = () => {
 
       {/* Info */}
       <div>
-        <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+        <div className="flex justify-between items-center">
+          <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
+          <button
+            onClick={handleWishlistToggle}
+            className="text-sm flex items-center gap-2 text-gray-700 border border-gray-300 px-3 py-1 rounded hover:bg-gray-100"
+          >
+            {wishlistAdded ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+          </button>
+        </div>
+
         {product.productId && (
           <p className="text-sm text-gray-500 mb-2">
             Product ID: <span className="font-mono">{product.productId}</span>
           </p>
         )}
 
-        {/* Price Section */}
+        {/* Price */}
         {selectedSizeObj && (
           <div className="mb-4">
             {selectedSizeObj.discount > 0 ? (
@@ -123,58 +176,72 @@ const ProductDetail = () => {
           </div>
         )}
 
+        {/* Description */}
         {product.description && (
           <p className="mb-4 text-gray-700">{product.description}</p>
         )}
 
         {/* Highlights */}
-        <ul className="list-disc pl-5 mb-4 text-sm text-gray-600">
+        <div className="mb-6 space-y-5">
           {product.highlights?.shiningExample && (
-            <li>{product.highlights.shiningExample}</li>
+            <Highlight icon={<FaStar />} title="Setting a shining example" desc={product.highlights.shiningExample} />
           )}
-          {product.highlights?.love && <li>{product.highlights.love}</li>}
+          {product.highlights?.love && (
+            <Highlight icon={<FaHeart />} title="Why you'll love it" desc={product.highlights.love} />
+          )}
           {product.highlights?.importantInformation && (
-            <li>{product.highlights.importantInformation}</li>
+            <Highlight icon={<FaInfoCircle />} title="Important Information" desc={product.highlights.importantInformation} />
           )}
           {product.highlights?.handFinished && (
-            <li>{product.highlights.handFinished}</li>
+            <Highlight icon={<FaHandHoldingHeart />} title="Hand-finished" desc={product.highlights.handFinished} />
           )}
           {product.highlights?.keepPerfect && (
-            <li>{product.highlights.keepPerfect}</li>
-          )}
-          {product.highlights?.workWith && (
-            <li>{product.highlights.workWith}</li>
+            <Highlight icon={<FaGem />} title="Keep it perfect" desc={product.highlights.keepPerfect} />
           )}
           {product.highlights?.dimensions && (
-            <li>Dimensions: {product.highlights.dimensions}</li>
+            <Highlight icon={<FaRulerCombined />} title="Dimensions" desc={product.highlights.dimensions} />
           )}
-        </ul>
+        </div>
 
-        {/* Special features */}
-        {product.engravable === "Yes" && (
-          <p className="mb-2 text-green-600 font-medium">Engravable</p>
-        )}
-        {product.isLabGrown && product.caratWeight && (
-          <p className="mb-2 text-blue-600 font-medium">
-            Lab-Grown Diamond: {product.caratWeight}
-          </p>
-        )}
+        {/* Special Features */}
+        <div className="space-y-3 mb-6">
+          {product.engravable === "Yes" && (
+            <Feature icon={<FaPencilAlt />} label="Engravable" />
+          )}
+          {product.isLabGrown && (
+            <div className="flex items-start gap-3 text-gray-700 text-sm">
+              <div>
+                <p className="font-semibold">Lab-Grown Diamond</p>
+                {product.caratWeight && <p>Carat: {product.caratWeight}</p>}
+                {product.clarity && <p>Clarity: {product.clarity}</p>}
+                {product.color && <p>Color: {product.color}</p>}
+                {product.shape && <p>Shape: {product.shape}</p>}
+              </div>
+            </div>
+          )}
+        </div>
 
-        {/* Metal details */}
+        {/* Metal Details */}
         {product.metals?.length > 0 && (
-          <div className="mb-4">
-            <p className="font-semibold mb-2">Metal Details</p>
+          <div className="mb-6">
+              <p className="font-semibold">Metal Details</p>
             {product.metals.map((metal, idx) => (
-              <div key={idx} className="mb-2">
-                {metal.type && <p>Type: {metal.type}</p>}
-                {metal.feature && <p>Feature: {metal.feature}</p>}
+              <div key={idx} className="flex items-center gap-3 mb-2 pl-7">
                 {metal.imageUrl && (
                   <img
                     src={metal.imageUrl}
                     alt={`Metal ${idx}`}
-                    className="h-20 mt-1 rounded border"
+                    className="w-12 h-13 rounded-full border"
                   />
                 )}
+                <div className="text-sm text-gray-700">
+                  {(metal.type || metal.feature) && (
+                    <div className="space-y-1 text-sm text-gray-700">
+                      {metal.type && <p>{metal.type}</p>}
+                      {metal.feature && <p>{metal.feature}</p>}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -202,7 +269,7 @@ const ProductDetail = () => {
 
         <button
           onClick={handleAddToCart}
-          className="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-6 py-3 rounded"
+          className="mt-4 bg-gray-700 hover:bg-gray-800 text-white font-semibold px-6 py-3 rounded"
         >
           Add to Cart
         </button>
@@ -210,5 +277,26 @@ const ProductDetail = () => {
     </div>
   );
 };
+
+// Highlight Component
+const Highlight = ({ icon, title, desc }) => (
+  <div className="flex items-start gap-4">
+    <div className="w-10 h-10 rounded-full border flex items-center justify-center text-lg text-gray-600">
+      {icon}
+    </div>
+    <div>
+      <p className="font-semibold">{title}</p>
+      <p className="text-gray-600 text-sm">{desc}</p>
+    </div>
+  </div>
+);
+
+// Feature Tag Component
+const Feature = ({ icon, label }) => (
+  <div className="flex items-center gap-2 text-gray-700 text-sm">
+    {icon}
+    <span className="font-medium">{label}</span>
+  </div>
+);
 
 export default ProductDetail;

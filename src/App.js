@@ -13,6 +13,8 @@ import { Toaster } from "react-hot-toast";
 // Auth
 import Register from "./pages/auth/Register";
 import Login from "./pages/auth/Login";
+import ForgetPassword from "./pages/auth/ForgetPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 // Shared
 import Navbar from "./components/Navbar";
@@ -46,10 +48,13 @@ import DeclinedOrders from "./pages/admin/orders/DeclinedOrders";
 
 // Shop
 import HomePage from "./pages/HomePage";
-import Shop from "./pages/shop/Shop";
+import Shop from "./pages/shop/category/Shop";
+import CategoryPage from "./pages/shop/category/CategoryPage";
 import ProductDetail from "./pages/shop/ProductDetail";
+import WishLists from "./pages/account/WishLists";
 import CartPage from "./pages/shop/CartPage";
 import CheckoutPage from "./pages/shop/CheckoutPage";
+import SearchResults from "./pages/shop/SearchResults";
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -95,6 +100,9 @@ function App() {
         <Route path="/" element={<HomePage />} />
         <Route path="*" element={<Navigate to="/" />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/search" element={<SearchResults />} />
+        <Route path="/category/:type" element={<CategoryPage />} />
+        <Route path="/wishlist" element={<WishLists />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/checkout" element={<CheckoutPage />} />
         <Route path="/orders" element={<OrdersPage />} />
@@ -103,6 +111,8 @@ function App() {
         {/* Auth */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forget-password" element={<ForgetPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
 
         {/* Product Detail */}
         <Route path="/product/:id" element={<ProductDetail />} />

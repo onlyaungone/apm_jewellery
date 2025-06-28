@@ -1,16 +1,22 @@
 import React, { useEffect, useState } from "react";
 import { auth, db } from "../../utils/firebaseConfig";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import {
+  doc,
+  getDoc,
+  collection,
+  getDocs
+} from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import OrderHistory from "./userOrders/OrderHistory";
 
 const MyAccount = () => {
   const [userData, setUserData] = useState(null);
   const [addressData, setAddressData] = useState(null);
+  const [wishlistCount, setWishlistCount] = useState(0); // NEW
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUserAndAddress = async () => {
+    const fetchUserAndData = async () => {
       const user = auth.currentUser;
       if (!user) return navigate("/login");
 
@@ -22,9 +28,13 @@ const MyAccount = () => {
         const firstDoc = addressSnapshot.docs[0];
         setAddressData({ id: firstDoc.id, ...firstDoc.data() });
       }
+
+      // Fetch wishlist count
+      const wishlistSnapshot = await getDocs(collection(db, "users", user.uid, "wishlist"));
+      setWishlistCount(wishlistSnapshot.size);
     };
 
-    fetchUserAndAddress();
+    fetchUserAndData();
   }, [navigate]);
 
   const formatGender = (g) => {
@@ -70,10 +80,15 @@ const MyAccount = () => {
         )}
 
         {/* Recent Orders */}
-        <OrderHistory limitCount={3}/>
+        <OrderHistory limitCount={3} />
 
         {/* Wishlist */}
-        <Section title="WISHLIST" subtitle="This list is empty." />
+        <Section
+          title="WISHLIST"
+          subtitle={`You have ${wishlistCount} item${wishlistCount !== 1 ? "s" : ""} in your wishlist.`}
+          link="View Wishlist"
+          to="/wishlist"
+        />
 
         {/* Password */}
         <Section title="PASSWORD" subtitle="**********" link="Edit" to="/password" />
