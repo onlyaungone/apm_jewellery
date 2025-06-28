@@ -38,7 +38,7 @@ const CATEGORY_MAP = {
   ]
 };
 
-const ITEMS_PER_PAGE = 20;
+const ITEMS_PER_PAGE = 8;
 
 const Shop = () => {
   const [products, setProducts] = useState([]);
