@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 
-const ProductGrid = ({ products }) => {
+const ProductGrid = ({ products, showHeart = false, onToggleWishlist }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
       {products.map((product) => {
@@ -12,8 +13,24 @@ const ProductGrid = ({ products }) => {
         const finalPrice = (price - (price * discount) / 100).toFixed(2);
 
         return (
-          <Link key={product.id} to={`/product/${product.id}`}>
-            <div className="hover:shadow-lg border p-2 rounded">
+          <div key={product.id} className="relative hover:shadow-lg border p-2 rounded">
+            {/* Heart Icon (if enabled) */}
+            {showHeart && onToggleWishlist && (
+              <button
+                onClick={() => onToggleWishlist(product.id)}
+                className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white border border-gray-300 flex items-center justify-center shadow hover:scale-110 transition z-10"
+                title={product.isWished ? "Remove from Wishlist" : "Add to Wishlist"}
+              >
+                {product.isWished ? (
+                  <AiFillHeart className="text-red-500 text-lg" />
+                ) : (
+                  <AiOutlineHeart className="text-gray-500 text-lg" />
+                )}
+              </button>
+            )}
+
+            {/* Product Link */}
+            <Link to={`/product/${product.id}`}>
               <img
                 src={product.images?.[0]}
                 alt={product.name}
@@ -42,8 +59,8 @@ const ProductGrid = ({ products }) => {
                   )}
                 </div>
               )}
-            </div>
-          </Link>
+            </Link>
+          </div>
         );
       })}
     </div>

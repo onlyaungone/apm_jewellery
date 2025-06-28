@@ -9,11 +9,13 @@ import {
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth, googleProvider, db } from "../../utils/firebaseConfig";
 import { useNavigate, Link } from "react-router-dom";
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
@@ -101,19 +103,28 @@ const Login = () => {
         <div className="space-y-4">
           <input
             type="email"
-            placeholder="Email *"
+            placeholder="Email"
             required
             className="w-full border border-gray-300 px-4 py-2 rounded"
             onChange={(e) => setEmail(e.target.value)}
           />
 
-          <input
-            type="password"
-            placeholder="Password *"
-            required
-            className="w-full border border-gray-300 px-4 py-2 rounded"
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <div className="relative">
+            <input
+              type={passwordVisible ? "text" : "password"}
+              placeholder="Enter Password"
+              required
+              className="w-full border border-gray-300 px-4 py-2 rounded pr-10"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <span
+              className="absolute top-2.5 right-3 text-gray-600 cursor-pointer"
+              onClick={() => setPasswordVisible(!passwordVisible)}
+            >
+              {passwordVisible ? <AiOutlineEye /> : <AiOutlineEyeInvisible />}
+            </span>
+          </div>
+
 
           <div className="flex items-center justify-between text-sm text-gray-600">
             <label className="flex items-center space-x-2">

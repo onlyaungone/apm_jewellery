@@ -104,7 +104,7 @@ const ResetPassword = () => {
                 className="absolute top-2.5 right-3 text-gray-600 cursor-pointer"
                 onClick={() => setPasswordVisible(!passwordVisible)}
               >
-                {passwordVisible ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
+                {passwordVisible ? <AiOutlineEye /> : <AiOutlineEyeInvisible />}
               </span>
             </div>
 

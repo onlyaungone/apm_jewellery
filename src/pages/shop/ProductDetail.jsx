@@ -137,9 +137,16 @@ const ProductDetail = () => {
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
           <button
             onClick={handleWishlistToggle}
-            className="text-sm flex items-center gap-2 text-gray-700 border border-gray-300 px-3 py-1 rounded hover:bg-gray-100"
+            className={`w-12 aspect-square flex items-center justify-center rounded-full border transition duration-200 ${
+              wishlistAdded ? "bg-red-100 border-red-300" : "bg-white border-gray-300"
+            } hover:shadow-md`}
+            title={wishlistAdded ? "Remove from Wishlist" : "Add to Wishlist"}
           >
-            {wishlistAdded ? <FaHeart className="text-red-500" /> : <FaRegHeart />}
+            {wishlistAdded ? (
+              <FaHeart className="text-red-500 text-lg" />
+            ) : (
+              <FaRegHeart className="text-gray-600 text-lg" />
+            )}
           </button>
         </div>
 
@@ -222,30 +229,27 @@ const ProductDetail = () => {
         </div>
 
         {/* Metal Details */}
-        {product.metals?.length > 0 && (
-          <div className="mb-6">
-              <p className="font-semibold">Metal Details</p>
-            {product.metals.map((metal, idx) => (
-              <div key={idx} className="flex items-center gap-3 mb-2 pl-7">
-                {metal.imageUrl && (
-                  <img
-                    src={metal.imageUrl}
-                    alt={`Metal ${idx}`}
-                    className="w-12 h-13 rounded-full border"
-                  />
-                )}
-                <div className="text-sm text-gray-700">
-                  {(metal.type || metal.feature) && (
-                    <div className="space-y-1 text-sm text-gray-700">
-                      {metal.type && <p>{metal.type}</p>}
-                      {metal.feature && <p>{metal.feature}</p>}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+        {product.metals.map((metal, idx) => (
+          <div key={idx} className="flex items-start gap-4 mb-4">
+            <div className="w-14 h-14 rounded-full overflow-hidden border shadow-sm flex items-center justify-center bg-white">
+              <img
+                src={metal.imageUrl}
+                alt={`Metal ${idx}`}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="text-sm text-gray-800">
+              {metal.type && <p className="font-semibold">{metal.type}</p>}
+              {metal.feature && metal.feature.includes('\n') ? (
+                metal.feature.split('\n').map((line, i) => (
+                  <p key={i} className="text-gray-600">{line}</p>
+                ))
+              ) : (
+                <p className="text-gray-600">{metal.feature}</p>
+              )}
+            </div>
           </div>
-        )}
+        ))}
 
         {/* Size Selection */}
         <div className="mb-4">
