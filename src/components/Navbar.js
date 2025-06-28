@@ -15,6 +15,7 @@ const Navbar = () => {
   const [wishlistCount, setWishlistCount] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
   const navigate = useNavigate();
   const { cartItems } = useCart();
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -54,6 +55,7 @@ const Navbar = () => {
     if (value.trim()) {
       navigate(`/search?q=${encodeURIComponent(value.trim())}`);
       setSearchTerm("");
+      setShowMobileSearch(false); // collapse after search
     }
   };
 
@@ -71,7 +73,7 @@ const Navbar = () => {
           <img src={logo} alt="APM Logo" className="h-20 w-auto" />
         </Link>
 
-        {/* Search */}
+        {/* Desktop Search */}
         <div className="hidden lg:block w-1/3 relative">
           <div className="flex items-center gap-2 text-gray-600">
             <FaSearch className="text-sm" />
@@ -80,12 +82,7 @@ const Navbar = () => {
               placeholder="Search"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleSearch(searchTerm);
-                }
-              }}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
               className="w-full text-sm focus:outline-none border-b border-gray-300"
             />
           </div>
@@ -104,8 +101,16 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Icons */}
-        <div className="flex gap-6 text-gray-700 text-lg">
+        {/* Mobile Icons */}
+        <div className="flex gap-6 text-gray-700 text-lg items-center">
+          {/* Search Icon for Mobile */}
+          <div className="block lg:hidden">
+            <FaSearch
+              className="cursor-pointer"
+              onClick={() => setShowMobileSearch((prev) => !prev)}
+            />
+          </div>
+
           {/* Wishlist */}
           <Link to="/wishlist" className="relative group flex flex-col items-center">
             <FaHeart className="cursor-pointer" />
@@ -114,18 +119,12 @@ const Navbar = () => {
                 {wishlistCount}
               </span>
             )}
-            <span className="absolute top-8 scale-0 group-hover:scale-100 transition bg-black text-white text-xs px-2 py-1 rounded z-10">
-              Wishlist
-            </span>
           </Link>
 
-          {/* User Dropdown */}
+          {/* User */}
           {!user ? (
             <Link to="/login" className="relative group flex flex-col items-center">
               <FaUser className="cursor-pointer" />
-              <span className="absolute top-8 scale-0 group-hover:scale-100 transition bg-black text-white text-xs px-2 py-1 rounded z-10">
-                Login to your account
-              </span>
             </Link>
           ) : (
             <div className="relative group">
@@ -154,12 +153,36 @@ const Navbar = () => {
                 {cartCount}
               </span>
             )}
-            <span className="absolute top-8 scale-0 group-hover:scale-100 transition bg-black text-white text-xs px-2 py-1 rounded z-10">
-              Cart Items
-            </span>
           </Link>
         </div>
       </div>
+
+      {/* Mobile Search Input */}
+      {showMobileSearch && (
+        <div className="block lg:hidden mt-2">
+          <input
+            type="text"
+            placeholder="Search products"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch(searchTerm)}
+            className="w-full border px-4 py-2 rounded text-sm"
+          />
+          {matchedSuggestions.length > 0 && (
+            <ul className="bg-white border rounded shadow z-50 w-full max-h-40 overflow-y-auto text-sm mt-1">
+              {matchedSuggestions.slice(0, 5).map((name, index) => (
+                <li
+                  key={index}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                  onClick={() => handleSearch(name)}
+                >
+                  {name}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Category Navigation */}
       <ul className="flex flex-wrap gap-5 text-sm text-gray-800 font-medium justify-center">

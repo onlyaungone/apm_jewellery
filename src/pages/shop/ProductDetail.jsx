@@ -16,6 +16,17 @@ import {
   FaRegHeart,
 } from "react-icons/fa";
 
+const isWithinPromo = (promoStart, promoEnd) => {
+  if (!promoStart || !promoEnd) return false;
+  const today = new Date();
+  const start = new Date(promoStart);
+  const end = new Date(promoEnd);
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  return today >= start && today <= end;
+};
+
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -57,6 +68,11 @@ const ProductDetail = () => {
   const selectedSizeObj = product?.sizes?.find(
     (item) => item.size === selectedSize
   );
+
+  const promoActive = isWithinPromo(product?.promoStart, product?.promoEnd);
+  const discount = promoActive ? selectedSizeObj?.discount || 0 : 0;
+  const basePrice = parseFloat(selectedSizeObj?.price || 0);
+  const finalPrice = (basePrice - (basePrice * discount) / 100).toFixed(2);
 
   const handleAddToCart = () => {
     if (!user) {
@@ -159,25 +175,21 @@ const ProductDetail = () => {
         {/* Price */}
         {selectedSizeObj && (
           <div className="mb-4">
-            {selectedSizeObj.discount > 0 ? (
+            {discount > 0 ? (
               <div className="flex items-center gap-4">
                 <span className="text-red-600 text-2xl font-semibold">
-                  A$
-                  {(
-                    selectedSizeObj.price -
-                    (selectedSizeObj.price * selectedSizeObj.discount) / 100
-                  ).toFixed(2)}
+                  A${finalPrice}
                 </span>
                 <span className="line-through text-black text-lg">
-                  A${parseFloat(selectedSizeObj.price).toFixed(2)}
+                  A${basePrice.toFixed(2)}
                 </span>
                 <span className="bg-red-100 text-red-700 text-sm font-bold px-3 py-1 rounded-full">
-                  SAVE {selectedSizeObj.discount}%
+                  SAVE {discount}%
                 </span>
               </div>
             ) : (
               <span className="text-black text-2xl font-semibold">
-                A${parseFloat(selectedSizeObj.price).toFixed(2)}
+                A${basePrice.toFixed(2)}
               </span>
             )}
           </div>

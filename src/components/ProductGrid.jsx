@@ -2,6 +2,18 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 
+// Helper to check if today is within the promo period
+const isWithinPromo = (promoStart, promoEnd) => {
+  if (!promoStart || !promoEnd) return false;
+  const today = new Date();
+  const start = new Date(promoStart);
+  const end = new Date(promoEnd);
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  return today >= start && today <= end;
+};
+
 const ProductGrid = ({ products, showHeart = false, onToggleWishlist }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 px-4">
@@ -9,8 +21,12 @@ const ProductGrid = ({ products, showHeart = false, onToggleWishlist }) => {
         const firstSize = product.sizes?.[0];
         const price = parseFloat(firstSize?.price) || 0;
         const discount = parseFloat(firstSize?.discount) || 0;
-        const hasDiscount = discount > 0;
-        const finalPrice = (price - (price * discount) / 100).toFixed(2);
+
+        const promoActive = isWithinPromo(product.promoStart, product.promoEnd);
+        const hasDiscount = promoActive && discount > 0;
+        const finalPrice = hasDiscount
+          ? (price - (price * discount) / 100).toFixed(2)
+          : price.toFixed(2);
 
         return (
           <div key={product.id} className="relative hover:shadow-lg border p-2 rounded">
