@@ -33,6 +33,7 @@ import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
 // Admin
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminChangePassword from "./pages/admin/users/AdminChangePassword";
 import ManageUsers from "./pages/admin/ManageUsers";
 import AdminReports from "./pages/admin/AdminReports";
 
@@ -130,6 +131,7 @@ function App() {
           path="/admin"
           element={currentUser?.role === "admin" ? <AdminDashboard /> : <Navigate to="/" />}
         />
+        <Route path="/admin/admin-change-password" element={<AdminChangePassword />} />
         <Route
           path="/admin/products"
           element={currentUser?.role === "admin" ? <AdminProducts /> : <Navigate to="/" />}

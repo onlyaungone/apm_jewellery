@@ -89,6 +89,9 @@ const AdminDashboard = () => {
             <Link to="/admin/orders/declined" className="block hover:text-black">Declined Orders</Link>
             <Link to="/admin/users" className="block hover:text-black">Manage Users</Link>
             <Link to="/admin/reports" className="block hover:text-black">View Reports</Link>
+            <Link to="/admin/admin-change-password" className="block hover:text-black">
+              Change Password
+            </Link>
           </nav>
         </aside>
 
