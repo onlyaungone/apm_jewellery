@@ -30,6 +30,7 @@ import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
 import Sizes from "./pages/account/Sizes";
 import Cards from "./pages/account/Cards";
+import ContactUs from "./pages/account/ContactUs";
 import OrdersPage from "./pages/account/userOrders/OrderHistory";
 import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
@@ -38,6 +39,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminChangePassword from "./pages/admin/users/AdminChangePassword";
 import ManageUsers from "./pages/admin/ManageUsers";
 import AdminReports from "./pages/admin/AdminReports";
+import AdminEnquiriesDashboard from "./pages/admin/enquiries/AdminEnquiriesDashboard";
+import AdminEnquiryDetail from "./pages/admin/enquiries/AdminEnquiryDetail";
 
 // Admin Products
 import AdminProducts from "./pages/admin/products/AdminProducts";
@@ -58,6 +61,10 @@ import WishLists from "./pages/account/WishLists";
 import CartPage from "./pages/shop/CartPage";
 import CheckoutPage from "./pages/shop/CheckoutPage";
 import SearchResults from "./pages/shop/SearchResults";
+
+// Chat Feature
+import ChatUser from "./pages/account/ChatUser";
+import ChatAdmin from "./pages/admin/ChatAdmin";
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -129,6 +136,8 @@ function App() {
         <Route path="/edit-address/:id" element={<EditAddress />} />
         <Route path="/sizes" element={<Sizes />} />
         <Route path="/cards" element={<Cards />} />
+        <Route path="/contact-us" element={<ContactUs />} />
+        <Route path="/chat" element={<ChatUser />} />
 
         {/* Admin Protected Routes */}
         <Route
@@ -170,6 +179,12 @@ function App() {
         />
         <Route path="/admin/reports" 
         element={currentUser?.role === "admin" ? <AdminReports /> : <Navigate to="/" />} 
+        />
+        <Route path="/admin/enquiries" element={<AdminEnquiriesDashboard />} />
+        <Route path="/admin/enquiries/:id" element={<AdminEnquiryDetail />} />
+        <Route
+          path="/admin/chat"
+          element={currentUser?.role === "admin" ? <ChatAdmin /> : <Navigate to="/" />}
         />
       </Routes>
 

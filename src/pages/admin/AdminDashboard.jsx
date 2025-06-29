@@ -20,54 +20,55 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     const fetchStats = async () => {
-      const productsSnap = await getDocs(collection(db, "products"));
+      try {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
 
-      const usersQuery = query(collection(db, "users"), where("role", "==", "user"));
-      const usersSnap = await getDocs(usersQuery);
+        const [
+          productsSnap,
+          usersSnap,
+          adminsSnap,
+          pendingOrdersSnap,
+          confirmedOrdersSnap,
+          declinedOrdersSnap,
+          allOrdersSnap
+        ] = await Promise.all([
+          getDocs(collection(db, "products")),
+          getDocs(query(collection(db, "users"), where("role", "==", "user"))),
+          getDocs(query(collection(db, "users"), where("role", "==", "admin"))),
+          getDocs(query(collection(db, "orders"), where("status", "==", "Processing"))),
+          getDocs(query(collection(db, "orders"), where("status", "==", "Completed"))),
+          getDocs(query(collection(db, "orders"), where("status", "==", "Cancelled"))),
+          getDocs(collection(db, "orders")),
+        ]);
 
-      const adminsQuery = query(collection(db, "users"), where("role", "==", "admin"));
-      const adminsSnap = await getDocs(adminsQuery);
+        let totalRevenue = 0;
+        allOrdersSnap.forEach((doc) => {
+          const data = doc.data();
+          const createdAt = data?.createdAt?.toDate?.();
+          const isThisMonth =
+            createdAt &&
+            createdAt.getMonth() === currentMonth &&
+            createdAt.getFullYear() === currentYear;
 
-      const pendingOrdersSnap = await getDocs(
-        query(collection(db, "orders"), where("status", "==", "Processing"))
-      );
+          if (data.status !== "Cancelled" && isThisMonth) {
+            totalRevenue += parseFloat(data.total) || 0;
+          }
+        });
 
-      const confirmedOrdersSnap = await getDocs(
-        query(collection(db, "orders"), where("status", "==", "Completed"))
-      );
-
-      const declinedOrdersSnap = await getDocs(
-        query(collection(db, "orders"), where("status", "==", "Cancelled"))
-      );
-
-      let totalRevenue = 0;
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-
-      const allOrdersSnap = await getDocs(collection(db, "orders"));
-      allOrdersSnap.forEach((doc) => {
-        const data = doc.data();
-        const createdAt = data?.createdAt?.toDate?.();
-        const isThisMonth =
-          createdAt &&
-          createdAt.getMonth() === currentMonth &&
-          createdAt.getFullYear() === currentYear;
-
-        if (data.status !== "Cancelled" && isThisMonth) {
-          totalRevenue += parseFloat(data.total) || 0;
-        }
-      });
-
-      setStats({
-        totalProducts: productsSnap.size,
-        pendingOrders: pendingOrdersSnap.size,
-        confirmedOrders: confirmedOrdersSnap.size,
-        declinedOrders: declinedOrdersSnap.size,
-        users: usersSnap.size,
-        admins: adminsSnap.size,
-        monthlyRevenue: totalRevenue,
-      });
+        setStats({
+          totalProducts: productsSnap.size,
+          pendingOrders: pendingOrdersSnap.size,
+          confirmedOrders: confirmedOrdersSnap.size,
+          declinedOrders: declinedOrdersSnap.size,
+          users: usersSnap.size,
+          admins: adminsSnap.size,
+          monthlyRevenue: totalRevenue,
+        });
+      } catch (error) {
+        console.error("Error fetching admin stats:", error);
+      }
     };
 
     fetchStats();
@@ -88,10 +89,10 @@ const AdminDashboard = () => {
             <Link to="/admin/orders/confirmed" className="block hover:text-black">Confirmed Orders</Link>
             <Link to="/admin/orders/declined" className="block hover:text-black">Declined Orders</Link>
             <Link to="/admin/users" className="block hover:text-black">Manage Users</Link>
+            <Link to="/admin/enquiries" className="block hover:text-black">Manage Enquiries</Link>
+            <Link to="/admin/chat" className="block hover:text-black">Manage Chat</Link>
             <Link to="/admin/reports" className="block hover:text-black">View Reports</Link>
-            <Link to="/admin/admin-change-password" className="block hover:text-black">
-              Change Password
-            </Link>
+            <Link to="/admin/admin-change-password" className="block hover:text-black">Change Password</Link>
           </nav>
         </aside>
 
@@ -107,7 +108,13 @@ const AdminDashboard = () => {
             <StatCard label="Declined Orders" value={stats.declinedOrders} />
             <StatCard label="Users" value={stats.users} />
             <StatCard label="Admins" value={stats.admins} />
-            <StatCard label="Monthly Revenue" value={`$${stats.monthlyRevenue.toLocaleString()}`} />
+            <StatCard
+              label="Monthly Revenue"
+              value={`$${stats.monthlyRevenue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}`}
+            />
           </div>
         </main>
       </div>

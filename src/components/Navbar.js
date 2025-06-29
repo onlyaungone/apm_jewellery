@@ -140,6 +140,8 @@ const Navbar = () => {
                 <MenuItem icon={<FaCreditCard />} label="Cards" to="/cards" />
                 <MenuItem icon={<FaRuler />} label="Sizes" to="/sizes" />
                 <MenuItem icon={<FaLock />} label="Password" to="/password" />
+                <MenuItem icon={<FaInfoCircle />} label="Chat" to="/chat" />
+                <MenuItem icon={<FaInfoCircle />} label="Contact Us" to="/contact-us" />
                 <MenuItem icon={<FaSignOutAlt />} label="Sign Out" onClick={handleLogout} />
               </div>
             </div>
