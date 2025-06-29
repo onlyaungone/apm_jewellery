@@ -10,16 +10,16 @@ const leftHandCoords = {
   pinky: { cx: 41, cy: 112 },
   ring: { cx: 63, cy: 97 },
   middle: { cx: 93, cy: 90 },
-  index: { cx: 123, cy: 97 },
+  index: { cx: 123, cy: 96 },
   thumb: { cx: 151, cy: 140 },
   wrist: { cx: 90, cy: 221 },
 };
 
 const rightHandCoords = {
-  pinky: { cx: 160, cy: 112 },
+  pinky: { cx: 160, cy: 111 },
   ring: { cx: 137, cy: 97 },
   middle: { cx: 107, cy: 91 },
-  index: { cx: 77, cy: 97 },
+  index: { cx: 77, cy: 96 },
   thumb: { cx: 49, cy: 141 },
   wrist: { cx: 110, cy: 221 },
 };
@@ -70,17 +70,16 @@ const Sizes = () => {
 
       <div className="flex justify-center gap-12 mb-6">
         {/* Left Hand */}
-        <div className="relative w-[200px] h-[300px]">
+        <div className="relative w-full max-w-[200px] aspect-[2/3]">
           <img
             src="/left-hand-outline.png"
             alt="Left Hand"
             className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
           />
           <svg
-            width="200"
-            height="300"
             viewBox="0 0 200 300"
-            className="absolute top-0 left-0"
+            className="absolute top-0 left-0 w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
           >
             {Object.entries(leftHandCoords).map(([part, { cx, cy }]) => (
               <circle
@@ -113,17 +112,16 @@ const Sizes = () => {
         </div>
 
         {/* Right Hand */}
-        <div className="relative w-[200px] h-[300px]">
+        <div className="relative w-full max-w-[200px] aspect-[2/3]">
           <img
             src="/right-hand-outline.png"
             alt="Right Hand"
             className="absolute inset-0 w-full h-full opacity-60 pointer-events-none"
           />
           <svg
-            width="200"
-            height="300"
             viewBox="0 0 200 300"
-            className="absolute top-0 left-0"
+            className="absolute top-0 left-0 w-full h-full"
+            preserveAspectRatio="xMidYMid meet"
           >
             {Object.entries(rightHandCoords).map(([part, { cx, cy }]) => (
               <circle
