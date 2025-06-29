@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   FaHeart, FaUser, FaShoppingBag, FaSearch, FaSignOutAlt,
-  FaLock, FaMapMarkerAlt, FaCreditCard, FaRuler, FaHistory, FaInfoCircle
+  FaLock, FaMapMarkerAlt, FaCreditCard, FaRuler, FaHistory, FaInfoCircle,
+  FaComments
 } from "react-icons/fa";
 import { auth, db } from "../utils/firebaseConfig";
 import { onAuthStateChanged, signOut } from "firebase/auth";
@@ -140,7 +141,7 @@ const Navbar = () => {
                 <MenuItem icon={<FaCreditCard />} label="Cards" to="/cards" />
                 <MenuItem icon={<FaRuler />} label="Sizes" to="/sizes" />
                 <MenuItem icon={<FaLock />} label="Password" to="/password" />
-                <MenuItem icon={<FaInfoCircle />} label="Chat" to="/chat" />
+                <MenuItem icon={<FaComments />} label="Chat" to="/chat" />
                 <MenuItem icon={<FaInfoCircle />} label="Contact Us" to="/contact-us" />
                 <MenuItem icon={<FaSignOutAlt />} label="Sign Out" onClick={handleLogout} />
               </div>

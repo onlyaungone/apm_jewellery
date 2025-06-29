@@ -35,10 +35,10 @@ import OrdersPage from "./pages/account/userOrders/OrderHistory";
 import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
 // Admin
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import AdminChangePassword from "./pages/admin/users/AdminChangePassword";
-import ManageUsers from "./pages/admin/ManageUsers";
-import AdminReports from "./pages/admin/AdminReports";
+import AdminDashboard from "./pages/admin/profile/AdminDashboard";
+import AdminChangePassword from "./pages/admin/profile/AdminChangePassword";
+import ManageUsers from "./pages/admin/manageUser/ManageUsers";
+import AdminReports from "./pages/admin/orderReports/AdminReports";
 import AdminEnquiriesDashboard from "./pages/admin/enquiries/AdminEnquiriesDashboard";
 import AdminEnquiryDetail from "./pages/admin/enquiries/AdminEnquiryDetail";
 
@@ -64,7 +64,7 @@ import SearchResults from "./pages/shop/SearchResults";
 
 // Chat Feature
 import ChatUser from "./pages/account/ChatUser";
-import ChatAdmin from "./pages/admin/ChatAdmin";
+import ChatAdmin from "./pages/admin/profile/ChatAdmin";
 
 function App() {
   const { currentUser, loading } = useAuth();

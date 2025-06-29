@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { collection, getDocs } from "firebase/firestore";
-import { db } from "../../utils/firebaseConfig";
-import { sendMessage, subscribeToMessages } from "../../services/chatService";
-import ChatBox from "../../components/ChatBox";
-import AdminNavbar from "../../components/AdminNavbar"; // ✅ Import AdminNavbar
+import { db } from "../../../utils/firebaseConfig";
+import { sendMessage, subscribeToMessages } from "../../../services/chatService";
+import ChatBox from "../../../components/ChatBox";
+import AdminNavbar from "../../../components/AdminNavbar"; // ✅ Import AdminNavbar
 
 const ChatAdmin = () => {
   const [users, setUsers] = useState([]);

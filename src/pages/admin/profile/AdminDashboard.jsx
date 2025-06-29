@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
-import AdminNavbar from "../../components/AdminNavbar";
-import { useAuth } from "../../context/AuthContext";
+import AdminNavbar from "../../../components/AdminNavbar";
+import { useAuth } from "../../../context/AuthContext";
 import { collection, getDocs, query, where } from "firebase/firestore";
-import { db } from "../../utils/firebaseConfig";
+import { db } from "../../../utils/firebaseConfig";
 
 const AdminDashboard = () => {
   const { currentUser } = useAuth();

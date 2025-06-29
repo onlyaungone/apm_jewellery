@@ -8,8 +8,8 @@ import {
   where,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "../../utils/firebaseConfig";
-import AdminNavbar from "../../components/AdminNavbar";
+import { db } from "../../../utils/firebaseConfig";
+import AdminNavbar from "../../../components/AdminNavbar";
 import { CSVLink } from "react-csv";
 import {
   BarChart,
@@ -184,15 +184,15 @@ const AdminReports = () => {
           <>
             <div className="mb-6">
               <p className="text-lg font-semibold">
-                📈 Total Revenue: ${report.totalRevenue}
+                Total Revenue: ${report.totalRevenue}
               </p>
               <p className="text-md text-gray-600">
-                💸 Avg Order Value: ${report.avgOrderValue}
+                Avg Order Value: ${report.avgOrderValue}
               </p>
             </div>
 
             <section className="mb-8">
-              <h3 className="text-xl font-semibold mb-2">🛒 Top Sold Products</h3>
+              <h3 className="text-xl font-semibold mb-2">Top Sold Products</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={report.topProducts}>
                   <XAxis dataKey="name" tick={false} />
@@ -204,7 +204,7 @@ const AdminReports = () => {
             </section>
 
             <section className="mb-8">
-              <h3 className="text-xl font-semibold mb-2">💰 Revenue by Product</h3>
+              <h3 className="text-xl font-semibold mb-2">Revenue by Product</h3>
               <ul className="bg-white p-4 rounded shadow">
                 {Object.entries(report.revenueByProduct).map(
                   ([name, revenue], idx) => (
@@ -217,7 +217,7 @@ const AdminReports = () => {
             </section>
 
             <section className="mb-8">
-              <h3 className="text-xl font-semibold mb-2">👤 Top Customers</h3>
+              <h3 className="text-xl font-semibold mb-2">Top Customers</h3>
               <ul className="bg-white p-4 rounded shadow">
                 {report.topUsers.map((user, idx) => (
                   <li key={idx}>
@@ -228,7 +228,7 @@ const AdminReports = () => {
             </section>
 
             <section className="mb-8">
-              <h3 className="text-xl font-semibold mb-2">📦 Orders by Status</h3>
+              <h3 className="text-xl font-semibold mb-2">Orders by Status</h3>
               <ul className="bg-white p-4 rounded shadow">
                 {Object.entries(report.orderStatus).map(([status, count], idx) => (
                   <li key={idx}>

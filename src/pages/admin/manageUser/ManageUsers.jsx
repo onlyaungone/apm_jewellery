@@ -8,8 +8,8 @@ import {
   query,
   where,
 } from "firebase/firestore";
-import { db } from "../../utils/firebaseConfig";
-import AdminNavbar from "../../components/AdminNavbar";
+import { db } from "../../../utils/firebaseConfig";
+import AdminNavbar from "../../../components/AdminNavbar";
 import { toast } from "react-hot-toast";
 
 const ManageUsers = () => {
