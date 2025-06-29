@@ -137,8 +137,8 @@ const Navbar = () => {
                 <MenuItem icon={<FaUser />} label="My Details" to="/details" />
                 <MenuItem icon={<FaHistory />} label="Order History" to="/orders" />
                 <MenuItem icon={<FaMapMarkerAlt />} label="My Address Book" to="/address-book" />
-                <MenuItem icon={<FaCreditCard />} label="Cards" />
-                <MenuItem icon={<FaRuler />} label="Sizes" />
+                <MenuItem icon={<FaCreditCard />} label="Cards" to="/cards" />
+                <MenuItem icon={<FaRuler />} label="Sizes" to="/sizes" />
                 <MenuItem icon={<FaLock />} label="Password" to="/password" />
                 <MenuItem icon={<FaSignOutAlt />} label="Sign Out" onClick={handleLogout} />
               </div>

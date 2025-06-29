@@ -27,6 +27,9 @@ const CheckoutPage = () => {
   const [validating, setValidating] = useState(false);
   const [address, setAddress] = useState(null);
   const [productImages, setProductImages] = useState({});
+  const [savedCards, setSavedCards] = useState([]);
+  const [selectedCardId, setSelectedCardId] = useState("");
+
   const stripe = useStripe();
   const elements = useElements();
   const navigate = useNavigate();
@@ -52,6 +55,16 @@ const CheckoutPage = () => {
   }, [currentUser]);
 
   useEffect(() => {
+    const fetchCards = async () => {
+      if (!currentUser?.uid) return;
+      const cardSnap = await getDocs(collection(db, `users/${currentUser.uid}/cards`));
+      const cardList = cardSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setSavedCards(cardList);
+    };
+    fetchCards();
+  }, [currentUser]);
+
+  useEffect(() => {
     const fetchImages = async () => {
       const imagesMap = {};
       for (const item of cartItems) {
@@ -72,7 +85,6 @@ const CheckoutPage = () => {
     setValidating(true);
 
     try {
-      // Stock validation
       for (const item of cartItems) {
         const docRef = doc(db, "products", item.productId);
         const docSnap = await getDoc(docRef);
@@ -85,35 +97,35 @@ const CheckoutPage = () => {
         const product = docSnap.data();
         const sizeObj = product.sizes.find((s) => s.size === item.size);
         if (!sizeObj || sizeObj.stock < item.quantity) {
-          toast.error(
-            `Only ${sizeObj?.stock || 0} left for ${item.productName} (${item.size})`
-          );
+          toast.error(`Only ${sizeObj?.stock || 0} left for ${item.productName} (${item.size})`);
           setValidating(false);
           return;
         }
       }
 
-      // Stripe validation
-      if (!stripe || !elements) {
-        toast.error("Stripe not initialized.");
-        setValidating(false);
-        return;
+      if (!selectedCardId) {
+        if (!stripe || !elements) {
+          toast.error("Stripe not initialized.");
+          setValidating(false);
+          return;
+        }
+
+        const cardNumberElement = elements.getElement(CardNumberElement);
+        const { error } = await stripe.createPaymentMethod({
+          type: "card",
+          card: cardNumberElement,
+          billing_details: { email: currentUser?.email },
+        });
+
+        if (error) {
+          toast.error(error.message);
+          setValidating(false);
+          return;
+        }
+      } else {
+        toast.success("Saved card selected. Proceeding with mock payment.");
       }
 
-      const cardNumberElement = elements.getElement(CardNumberElement);
-      const { error } = await stripe.createPaymentMethod({
-        type: "card",
-        card: cardNumberElement,
-        billing_details: { email: currentUser?.email },
-      });
-
-      if (error) {
-        toast.error(error.message);
-        setValidating(false);
-        return;
-      }
-
-      // Reduce stock
       for (const item of cartItems) {
         const docRef = doc(db, "products", item.productId);
         const product = (await getDoc(docRef)).data();
@@ -123,7 +135,6 @@ const CheckoutPage = () => {
         await updateDoc(docRef, { sizes: updatedSizes });
       }
 
-      // Save order to Firestore
       const orderData = {
         userId: currentUser.uid,
         email: currentUser?.email || "",
@@ -142,10 +153,7 @@ const CheckoutPage = () => {
         createdAt: serverTimestamp(),
       };
 
-      // 1. Save to global /orders
       await addDoc(collection(db, "orders"), orderData);
-
-      // 2. Save to user subcollection /users/{uid}/orders
       await addDoc(collection(db, `users/${currentUser.uid}/orders`), orderData);
 
       toast.success("Payment successful. Order placed!");
@@ -194,8 +202,9 @@ const CheckoutPage = () => {
               </p>
               <p>Qty: {item.quantity}</p>
               <p>
-                Price: $
-                {(item.price * (1 - item.discount / 100)).toFixed(2)}
+                Price: ${
+                  (item.price * (1 - item.discount / 100)).toFixed(2)
+                }
               </p>
             </div>
           </div>
@@ -213,23 +222,43 @@ const CheckoutPage = () => {
           />
         </label>
 
-        <div className="space-y-4">
-          <label className="block text-sm font-medium">
-            Card Number:
-            <CardNumberElement className="mt-1 border px-3 py-2 rounded w-full" />
-          </label>
-
-          <div className="grid grid-cols-2 gap-4">
-            <label className="block text-sm font-medium">
-              Expiry:
-              <CardExpiryElement className="mt-1 border px-3 py-2 rounded w-full" />
-            </label>
-            <label className="block text-sm font-medium">
-              CVC:
-              <CardCvcElement className="mt-1 border px-3 py-2 rounded w-full" />
-            </label>
+        {savedCards.length > 0 && (
+          <div>
+            <label className="block text-sm font-medium mb-1">Select a saved card:</label>
+            <select
+              value={selectedCardId}
+              onChange={(e) => setSelectedCardId(e.target.value)}
+              className="border px-3 py-2 rounded w-full mb-4"
+            >
+              <option value="">Select a card</option>
+              {savedCards.map((card) => (
+                <option key={card.id} value={card.id}>
+                  {card.brand || "Card"} - {card.cardNumber} (Exp: {card.expiry})
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
+        )}
+
+        {!selectedCardId && (
+          <div className="space-y-4">
+            <label className="block text-sm font-medium">
+              Card Number:
+              <CardNumberElement className="mt-1 border px-3 py-2 rounded w-full" />
+            </label>
+
+            <div className="grid grid-cols-2 gap-4">
+              <label className="block text-sm font-medium">
+                Expiry:
+                <CardExpiryElement className="mt-1 border px-3 py-2 rounded w-full" />
+              </label>
+              <label className="block text-sm font-medium">
+                CVC:
+                <CardCvcElement className="mt-1 border px-3 py-2 rounded w-full" />
+              </label>
+            </div>
+          </div>
+        )}
 
         <p className="text-xl font-bold mt-4">
           Total: <span className="text-green-600">${calculateTotal()}</span>

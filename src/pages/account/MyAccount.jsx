@@ -4,7 +4,7 @@ import {
   doc,
   getDoc,
   collection,
-  getDocs
+  getDocs,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import OrderHistory from "./userOrders/OrderHistory";
@@ -12,7 +12,9 @@ import OrderHistory from "./userOrders/OrderHistory";
 const MyAccount = () => {
   const [userData, setUserData] = useState(null);
   const [addressData, setAddressData] = useState(null);
-  const [wishlistCount, setWishlistCount] = useState(0); // NEW
+  const [wishlistCount, setWishlistCount] = useState(0);
+  const [cardCount, setCardCount] = useState(0);
+  const [sizeCount, setSizeCount] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -29,9 +31,14 @@ const MyAccount = () => {
         setAddressData({ id: firstDoc.id, ...firstDoc.data() });
       }
 
-      // Fetch wishlist count
       const wishlistSnapshot = await getDocs(collection(db, "users", user.uid, "wishlist"));
       setWishlistCount(wishlistSnapshot.size);
+
+      const cardSnapshot = await getDocs(collection(db, "users", user.uid, "cards"));
+      setCardCount(cardSnapshot.size);
+
+      const sizeSnapshot = await getDocs(collection(db, "users", user.uid, "sizes"));
+      setSizeCount(sizeSnapshot.size);
     };
 
     fetchUserAndData();
@@ -41,7 +48,7 @@ const MyAccount = () => {
     if (g === "male") return "Male";
     if (g === "female") return "Female";
     if (g === "prefer") return "Prefer not to say";
-    return "None";
+    return "N/A";
   };
 
   if (!userData) return <div className="p-8 text-center">Loading...</div>;
@@ -53,7 +60,20 @@ const MyAccount = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Sizes */}
-        <Section title="SIZES" subtitle="Save and share your jewellery sizes here" link="View Sizes" to="/sizes" />
+        <Section
+          title="SIZES"
+          subtitle={`You have ${sizeCount} saved size${sizeCount !== 1 ? "s" : ""}.`}
+          link="View Sizes"
+          to="/sizes"
+        />
+
+        {/* Cards */}
+        <Section
+          title="CARDS"
+          subtitle={`You have ${cardCount} saved card${cardCount !== 1 ? "s" : ""}.`}
+          link="View Cards"
+          to="/cards"
+        />
 
         {/* Address Book */}
         {addressData ? (
@@ -109,11 +129,11 @@ const MyAccount = () => {
             <div><strong>Last Name:</strong> {userData.lastName}</div>
             <div><strong>Email:</strong> {userData.email}</div>
             <div><strong>Gender:</strong> {formatGender(userData.gender)}</div>
-            <div><strong>Phone:</strong> {userData.phone || "None"}</div>
-            <div><strong>Postal Code:</strong> {userData.postalCode || "None"}</div>
-            <div><strong>Birthday:</strong> {userData.birthday || "None"}</div>
-            <div><strong>Wedding Day:</strong> {userData.weddingDay || "None"}</div>
-            <div><strong>Anniversary:</strong> {userData.anniversary || "None"}</div>
+            <div><strong>Phone:</strong> {userData.phone || "N/A"}</div>
+            <div><strong>Postal Code:</strong> {userData.postalCode || "N/A"}</div>
+            <div><strong>Birthday:</strong> {userData.birthday || "N/A"}</div>
+            <div><strong>Wedding Day:</strong> {userData.weddingDay || "N/A"}</div>
+            <div><strong>Anniversary:</strong> {userData.anniversary || "N/A"}</div>
           </div>
         </div>
       </div>
@@ -136,8 +156,6 @@ const Section = ({ title, subtitle, link, to }) => {
           </button>
         )}
       </div>
-
-      {/* Safe rendering: only wrap strings in <p> */}
       {typeof subtitle === "string" ? (
         <p className="text-sm text-gray-600">{subtitle}</p>
       ) : (

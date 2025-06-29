@@ -28,6 +28,8 @@ import ChangePassword from "./pages/account/ChangePassword";
 import AddressBook from "./pages/account/address/AddressBook";
 import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
+import Sizes from "./pages/account/Sizes";
+import Cards from "./pages/account/Cards";
 import OrdersPage from "./pages/account/userOrders/OrderHistory";
 import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
@@ -125,6 +127,8 @@ function App() {
         <Route path="/address-book" element={<AddressBook />} />
         <Route path="/add-address" element={<AddAddress />} />
         <Route path="/edit-address/:id" element={<EditAddress />} />
+        <Route path="/sizes" element={<Sizes />} />
+        <Route path="/cards" element={<Cards />} />
 
         {/* Admin Protected Routes */}
         <Route
