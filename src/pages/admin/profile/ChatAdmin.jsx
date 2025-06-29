@@ -3,7 +3,7 @@ import { collection, getDocs } from "firebase/firestore";
 import { db } from "../../../utils/firebaseConfig";
 import { sendMessage, subscribeToMessages } from "../../../services/chatService";
 import ChatBox from "../../../components/ChatBox";
-import AdminNavbar from "../../../components/AdminNavbar"; // ✅ Import AdminNavbar
+import AdminNavbar from "../../../components/AdminNavbar";
 
 const ChatAdmin = () => {
   const [users, setUsers] = useState([]);
@@ -19,13 +19,13 @@ const ChatAdmin = () => {
 
   return (
     <>
-      <AdminNavbar /> {/* ✅ Add AdminNavbar here */}
+      <AdminNavbar />
 
-      <div className="flex max-w-6xl mx-auto mt-10 gap-6 px-4">
+      <div className="flex flex-col md:flex-row max-w-6xl mx-auto mt-6 gap-4 px-4">
         {/* Sidebar: List of users */}
-        <div className="w-1/3 border-r pr-4">
+        <div className="md:w-1/3 w-full border-b md:border-b-0 md:border-r pb-4 md:pb-0 md:pr-4">
           <h3 className="text-lg font-bold mb-2">User Chats</h3>
-          <ul className="space-y-2">
+          <ul className="space-y-2 max-h-64 md:max-h-screen overflow-y-auto">
             {users.map((user) => (
               <li
                 key={user.id}
@@ -39,7 +39,7 @@ const ChatAdmin = () => {
         </div>
 
         {/* Main chat window */}
-        <div className="w-2/3">
+        <div className="md:w-2/3 w-full">
           {selectedChatId ? (
             <ChatBox
               chatId={selectedChatId}

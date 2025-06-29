@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { auth, db } from "../../utils/firebaseConfig";
+import { auth, db } from "../../../utils/firebaseConfig";
 import {
   collection,
   doc,
   onSnapshot,
   deleteDoc,
 } from "firebase/firestore";
-import Breadcrumb from "../../components/Breadcrumb";
-import ProductGrid from "../../components/ProductGrid";
+import Breadcrumb from "../../../components/Breadcrumb";
+import ProductGrid from "../../../components/ProductGrid";
 
 const WishLists = () => {
   const [wishlist, setWishlist] = useState([]);

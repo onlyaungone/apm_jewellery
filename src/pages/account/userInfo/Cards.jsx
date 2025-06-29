@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "../../utils/firebaseConfig";
+import { auth } from "../../../utils/firebaseConfig";
 import {
   addCard,
   getCards,
   deleteCard,
   updateCard,
-} from "../../services/cardsService";
+} from "../../../services/cardsService";
 import toast from "react-hot-toast";
 
 const getCardBrand = (number) => {

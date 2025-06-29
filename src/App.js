@@ -22,15 +22,15 @@ import Footer from "./components/Footer";
 import { useAuth } from "./context/AuthContext";
 
 // Customer Account
-import MyAccount from "./pages/account/MyAccount";
-import MyDetails from "./pages/account/MyDetails";
-import ChangePassword from "./pages/account/ChangePassword";
+import MyAccount from "./pages/account/userInfo/MyAccount";
+import MyDetails from "./pages/account/userInfo/MyDetails";
+import ChangePassword from "./pages/account/userInfo/ChangePassword";
 import AddressBook from "./pages/account/address/AddressBook";
 import AddAddress from "./pages/account/address/AddAddress";
 import EditAddress from "./pages/account/address/EditAddress";
-import Sizes from "./pages/account/Sizes";
-import Cards from "./pages/account/Cards";
-import ContactUs from "./pages/account/ContactUs";
+import Sizes from "./pages/account/userInfo/Sizes";
+import Cards from "./pages/account/userInfo/Cards";
+import ContactUs from "./pages/account/userActions/ContactUs";
 import OrdersPage from "./pages/account/userOrders/OrderHistory";
 import UserOrderDetails from "./pages/account/userOrders/UserOrderDetails";
 
@@ -57,13 +57,13 @@ import HomePage from "./pages/HomePage";
 import Shop from "./pages/shop/category/Shop";
 import CategoryPage from "./pages/shop/category/CategoryPage";
 import ProductDetail from "./pages/shop/ProductDetail";
-import WishLists from "./pages/account/WishLists";
+import WishLists from "./pages/account/userActions/WishLists";
 import CartPage from "./pages/shop/CartPage";
 import CheckoutPage from "./pages/shop/CheckoutPage";
 import SearchResults from "./pages/shop/SearchResults";
 
 // Chat Feature
-import ChatUser from "./pages/account/ChatUser";
+import ChatUser from "./pages/account/userActions/ChatUser";
 import ChatAdmin from "./pages/admin/profile/ChatAdmin";
 
 function App() {

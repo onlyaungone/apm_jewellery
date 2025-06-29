@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { auth } from "../../utils/firebaseConfig";
-import { addSize, getSizes } from "../../services/sizesService";
+import { auth } from "../../../utils/firebaseConfig";
+import { addSize, getSizes } from "../../../services/sizesService";
 import toast from "react-hot-toast";
 
 const sizeOptions = Array.from({ length: 21 }, (_, i) => String(44 + i)); // 44–64
