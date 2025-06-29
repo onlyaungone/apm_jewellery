@@ -32,7 +32,9 @@ const ChatAdmin = () => {
                 onClick={() => setSelectedChatId(user.id)}
                 className="cursor-pointer hover:underline text-blue-600"
               >
-                {user.email || user.id}
+                {user.firstName && user.lastName
+                  ? `${user.firstName} ${user.lastName}`
+                  : user.email || user.id}
               </li>
             ))}
           </ul>

@@ -9,7 +9,7 @@ const ChatUser = () => {
 
   return (
     <div className="max-w-xl mx-auto mt-10">
-      <h2 className="text-xl font-semibold mb-4">Chat</h2>
+      <h2 className="text-xl font-semibold mb-4">Chat with Admin</h2>
       <ChatBox
         chatId={user.uid}
         userId={user.uid}

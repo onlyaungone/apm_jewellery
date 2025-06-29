@@ -64,7 +64,7 @@ import SearchResults from "./pages/shop/SearchResults";
 
 // Chat Feature
 import ChatUser from "./pages/account/userActions/ChatUser";
-import ChatAdmin from "./pages/admin/profile/ChatAdmin";
+import ChatAdmin from "./pages/admin/manageUser/ChatAdmin";
 
 function App() {
   const { currentUser, loading } = useAuth();
