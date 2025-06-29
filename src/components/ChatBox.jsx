@@ -1,20 +1,27 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  doc,
-  setDoc,
-  onSnapshot
-} from "firebase/firestore";
+import { doc, setDoc, onSnapshot } from "firebase/firestore";
 import { db } from "../utils/firebaseConfig";
 import { markMessagesAsSeen } from "../services/chatService";
 
-const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
+const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender, otherUserName = "User" }) => {
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef(null);
   const audioRef = useRef(null);
+  const typingTimeoutRef = useRef(null);
 
   const otherParty = sender === "admin" ? "user" : "admin";
+
+  const scrollToBottom = () => {
+    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const isUserNearBottom = () => {
+    const el = scrollRef.current?.parentElement;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+  };
 
   useEffect(() => {
     if (!chatId) return;
@@ -43,8 +50,10 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
   }, [chatId, sender, subscribeFn, otherParty]);
 
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (isUserNearBottom()) {
+      scrollToBottom();
+    }
+  }, [messages, isTyping]);
 
   const formatTimestamp = (ts) => {
     if (!ts?.toDate) return "";
@@ -60,12 +69,13 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
       sender,
       delivered: true,
       seen: false,
-      timestamp: new Date()
+      timestamp: new Date(),
     });
 
     setText("");
+
     await setDoc(doc(db, "chats", chatId), {
-      typing: { [sender]: false }
+      typing: { [sender]: false },
     }, { merge: true });
   };
 
@@ -74,12 +84,14 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
     setText(val);
 
     await setDoc(doc(db, "chats", chatId), {
-      typing: { [sender]: true }
+      typing: { [sender]: true },
     }, { merge: true });
 
-    setTimeout(async () => {
-      await setDoc(doc(db, "chats", chatId), {
-        typing: { [sender]: false }
+    if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+
+    typingTimeoutRef.current = setTimeout(() => {
+      setDoc(doc(db, "chats", chatId), {
+        typing: { [sender]: false },
       }, { merge: true });
     }, 1500);
   };
@@ -92,48 +104,59 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
       <div className="flex-1 overflow-y-auto space-y-2 mb-2 px-2">
         {messages.map((msg, idx) => {
           const isSender = msg.sender === sender;
+            msg.sender === otherParty &&
+            (idx === messages.length - 1 ||
+              messages.slice(idx + 1).every((m) => m.sender === sender));
+
           return (
-            <div
-              key={msg.id || idx}
-              className={`relative p-2 rounded-md w-fit text-sm max-w-[80%] break-words
-                ${isSender ? "bg-blue-100 ml-auto text-right" : "bg-gray-200"}
-                ${isSender ? "rounded-tr-none" : "rounded-tl-none"}
-                before:absolute before:bottom-0 before:w-0 before:h-0
-                ${isSender
-                  ? "before:right-[-6px] before:border-t-[6px] before:border-l-[6px] before:border-t-transparent before:border-l-blue-100"
-                  : "before:left-[-6px] before:border-t-[6px] before:border-r-[6px] before:border-t-transparent before:border-r-gray-200"}
-              `}
-            >
-              <p>{msg.text}</p>
-              <div className="text-xs text-gray-500 mt-1 flex justify-between items-center">
-                <span>{formatTimestamp(msg.timestamp)}</span>
-                <span className="ml-2">
+            <React.Fragment key={msg.id || idx}>
+              <div
+                className={`relative p-2 rounded-md w-fit text-sm max-w-[80%] break-words
+                  ${isSender ? "bg-blue-100 ml-auto text-right" : "bg-gray-200"}
+                  ${isSender ? "rounded-tr-none" : "rounded-tl-none"}
+                  before:absolute before:bottom-0 before:w-0 before:h-0
+                  ${isSender
+                    ? "before:right-[-6px] before:border-t-[6px] before:border-l-[6px] before:border-t-transparent before:border-l-blue-100"
+                    : "before:left-[-6px] before:border-t-[6px] before:border-r-[6px] before:border-t-transparent before:border-r-gray-200"}
+                `}
+              >
+                <p>{msg.text}</p>
+                <div className="text-xs text-gray-500 mt-1 flex justify-between items-center">
+                  <span>{formatTimestamp(msg.timestamp)}</span>
+                  <span className="ml-2">
                     {msg.seen ? (
-                    <span className={`font-medium ${msg.sender === sender ? "text-green-600" : "text-green-600"}`}>
-                        ✓✓ Seen
-                    </span>
+                      <span className="font-medium text-green-600">✓✓ Seen</span>
                     ) : msg.delivered ? (
-                    <span className="text-gray-400">✓ Delivered</span>
+                      <span className="text-gray-400">✓ Delivered</span>
                     ) : null}
-                </span>
+                  </span>
                 </div>
-            </div>
+              </div>
+            </React.Fragment>
           );
         })}
+
+        {/* Typing indicator bubble */}
+        {isTyping && (
+          <div
+            className={`relative p-2 rounded-md w-fit text-sm max-w-[80%] break-words mt-1
+              bg-gray-200 text-left rounded-tl-none
+              before:absolute before:bottom-0 before:w-0 before:h-0
+              before:left-[-6px] before:border-t-[6px] before:border-r-[6px] before:border-t-transparent before:border-r-gray-200
+            `}
+          >
+            <div className="text-sm font-medium mb-1">
+              {otherParty === "admin" ? "Admin is typing..." : `${otherUserName} is typing...`}
+            </div>
+            <div className="flex space-x-1 justify-center">
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+              <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+            </div>
+          </div>
+        )}
         <div ref={scrollRef} />
       </div>
-
-      {isTyping && (
-        <div className={`flex items-center space-x-1 mb-2 px-2 ${sender === "admin" ? "justify-start" : "justify-end"}`}>
-            <div className="w-16 h-8 bg-gray-200 rounded-full flex items-center justify-center px-3">
-            <div className="flex space-x-1">
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-            </div>
-            </div>
-        </div>
-        )}
 
       {/* Input */}
       <div className="flex gap-2 mt-auto">

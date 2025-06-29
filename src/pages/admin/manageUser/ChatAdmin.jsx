@@ -8,14 +8,21 @@ import AdminNavbar from "../../../components/AdminNavbar";
 const ChatAdmin = () => {
   const [users, setUsers] = useState([]);
   const [selectedChatId, setSelectedChatId] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
       const snapshot = await getDocs(collection(db, "users"));
-      setUsers(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
+      const userList = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setUsers(userList);
     };
     fetchUsers();
   }, []);
+
+  const handleUserSelect = (user) => {
+    setSelectedChatId(user.id);
+    setSelectedUser(user);
+  };
 
   return (
     <>
@@ -29,8 +36,10 @@ const ChatAdmin = () => {
             {users.map((user) => (
               <li
                 key={user.id}
-                onClick={() => setSelectedChatId(user.id)}
-                className="cursor-pointer hover:underline text-blue-600"
+                onClick={() => handleUserSelect(user)}
+                className={`cursor-pointer hover:underline text-blue-600 ${
+                  selectedChatId === user.id ? "font-semibold" : ""
+                }`}
               >
                 {user.firstName && user.lastName
                   ? `${user.firstName} ${user.lastName}`
@@ -48,6 +57,11 @@ const ChatAdmin = () => {
               sendMessageFn={sendMessage}
               subscribeFn={subscribeToMessages}
               sender="admin"
+              otherUserName={
+                selectedUser?.firstName
+                  ? selectedUser.firstName
+                  : selectedUser?.email || "User"
+              }
             />
           ) : (
             <p className="text-gray-500">Select a user to start chatting.</p>
