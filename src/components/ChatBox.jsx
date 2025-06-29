@@ -107,16 +107,16 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
               <p>{msg.text}</p>
               <div className="text-xs text-gray-500 mt-1 flex justify-between items-center">
                 <span>{formatTimestamp(msg.timestamp)}</span>
-                {isSender && (
-                  <span className="ml-2">
+                <span className="ml-2">
                     {msg.seen ? (
-                      <span className="text-blue-600">✓✓ Seen</span>
+                    <span className={`font-medium ${msg.sender === sender ? "text-green-600" : "text-green-600"}`}>
+                        ✓✓ Seen
+                    </span>
                     ) : msg.delivered ? (
-                      <span className="text-gray-500">✓ Delivered</span>
+                    <span className="text-gray-400">✓ Delivered</span>
                     ) : null}
-                  </span>
-                )}
-              </div>
+                </span>
+                </div>
             </div>
           );
         })}
@@ -124,10 +124,16 @@ const ChatBox = ({ chatId, sendMessageFn, subscribeFn, sender }) => {
       </div>
 
       {isTyping && (
-        <p className="text-sm text-gray-400 italic mb-2 px-2">
-          {otherParty === "admin" ? "Admin" : "User"} is typing...
-        </p>
-      )}
+        <div className={`flex items-center space-x-1 mb-2 px-2 ${sender === "admin" ? "justify-start" : "justify-end"}`}>
+            <div className="w-16 h-8 bg-gray-200 rounded-full flex items-center justify-center px-3">
+            <div className="flex space-x-1">
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                <span className="w-2 h-2 bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+            </div>
+            </div>
+        </div>
+        )}
 
       {/* Input */}
       <div className="flex gap-2 mt-auto">
