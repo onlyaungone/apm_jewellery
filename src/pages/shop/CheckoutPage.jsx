@@ -96,8 +96,8 @@ const CheckoutPage = () => {
 
         const product = docSnap.data();
         const sizeObj = product.sizes.find((s) => s.size === item.size);
-        if (!sizeObj || sizeObj.stock < item.quantity) {
-          toast.error(`Only ${sizeObj?.stock || 0} left for ${item.productName} (${item.size})`);
+        if (!sizeObj || sizeObj.quantity < item.quantity) {
+          toast.error(`Only ${sizeObj?.quantity || 0} left for ${item.productName} (${item.size})`);
           setValidating(false);
           return;
         }
@@ -130,7 +130,7 @@ const CheckoutPage = () => {
         const docRef = doc(db, "products", item.productId);
         const product = (await getDoc(docRef)).data();
         const updatedSizes = product.sizes.map((s) =>
-          s.size === item.size ? { ...s, stock: s.stock - item.quantity } : s
+          s.size === item.size ? { ...s, quantity: s.quantity - item.quantity } : s
         );
         await updateDoc(docRef, { sizes: updatedSizes });
       }
